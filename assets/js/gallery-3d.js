@@ -16,7 +16,6 @@ const SPACING = 25;
 const ROWS_PER_LOOP = Math.ceil(TOTAL_PAINTINGS / 2); 
 const LOOP_DISTANCE = ROWS_PER_LOOP * SPACING; 
 const HALL_WIDTH = 50; 
-// 修改点1：大幅增加展厅高度，更显宏伟
 const HALL_HEIGHT = 45; 
 
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -30,20 +29,28 @@ function init() {
     
     const fogColor = 0xffeadd; 
     scene.background = new THREE.Color(fogColor); 
-    // 雾气稍微调淡一点点，让高处能看清
     scene.fog = new THREE.FogExp2(fogColor, 0.006);
 
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    // 相机视点稍微抬高一点点
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 800); // 降低视距
     camera.position.set(0, 11, 30); 
 
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer = new THREE.WebGLRenderer({ 
+        antialias: true, // 如果还卡，把这里改成 false
+        powerPreference: "high-performance" // 提示浏览器用独显
+    });
+    
+    // 【性能优化核心 1】限制像素比，防止4K屏卡死
+    // 强制最高只渲染到 1.5倍屏（兼顾清晰度和性能），之前是无限制
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+    
+    // 【性能优化核心 2】改用普通阴影，不算柔和阴影了，速度快
+    renderer.shadowMap.type = THREE.PCFShadowMap; 
+    
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1; // 稍微调亮一点曝光
+    renderer.toneMappingExposure = 1.1; 
     document.body.appendChild(renderer.domElement);
 
     raycaster = new THREE.Raycaster();
@@ -52,25 +59,28 @@ function init() {
     const ambientLight = new THREE.AmbientLight(0xffdcb4, 0.8); 
     scene.add(ambientLight);
 
-    // 太阳光增强一点，位置提高
     const sunLight = new THREE.DirectionalLight(0xffaa77, 1.8); 
-    sunLight.position.set(-40, 80, 60); // 提高光源位置适应高墙
+    sunLight.position.set(-40, 80, 60); 
     sunLight.castShadow = true;
-    sunLight.shadow.camera.left = -150; sunLight.shadow.camera.right = 150;
-    sunLight.shadow.camera.top = 150; sunLight.shadow.camera.bottom = -150;
-    sunLight.shadow.camera.far = 300;
-    sunLight.shadow.mapSize.width = 4096; sunLight.shadow.mapSize.height = 4096; // 提高阴影质量
+    
+    // 缩小阴影计算范围（只计算附近的）
+    sunLight.shadow.camera.left = -100; sunLight.shadow.camera.right = 100;
+    sunLight.shadow.camera.top = 100; sunLight.shadow.camera.bottom = -100;
+    sunLight.shadow.camera.far = 250;
+    
+    // 【性能优化核心 3】降低阴影贴图分辨率 (4096 -> 2048)
+    sunLight.shadow.mapSize.width = 2048; 
+    sunLight.shadow.mapSize.height = 2048; 
     sunLight.shadow.bias = -0.0005;
     scene.add(sunLight);
 
     buildEndlessHall();
 
-    // === 挂画循环逻辑 ===
+    // === 挂画 ===
     const leftX = -HALL_WIDTH/2 + 0.5;
     const rightX = HALL_WIDTH/2 - 0.5;
-    const BUFFER_ROWS = 8; 
+    const BUFFER_ROWS = 6; // 减少缓冲排数，少渲染几张画
 
-    // 修改点2：画作挂载高度 Y 从 9 提升到 18
     const ART_Y_POS = 18; 
 
     for (let i = -BUFFER_ROWS; i < ROWS_PER_LOOP + BUFFER_ROWS; i++) {
@@ -81,7 +91,6 @@ function init() {
 
         let leftArtNum = (normalizedRowIndex * 2) + 1; 
         let leftImgPath = `assets/images/gallery/eg${leftImgIdx + 1}.jpg`;
-        // 稍微增大一点画作尺寸
         let lW = 14 + (leftImgIdx % 3) * 2; let lH = 14 + (leftImgIdx % 2) * 5;
         
         addChineseArt(leftImgPath, lW, lH, leftX, ART_Y_POS, zPos, Math.PI/2, 
@@ -101,9 +110,9 @@ function init() {
     document.addEventListener('click', onMouseClick);
 }
 
-// === 建造结构 ===
 function buildEndlessHall() {
-    const floorGeo = new THREE.PlaneGeometry(HALL_WIDTH, 2000);
+    // 减少几何体面数 (虽然 Plane 只有2个面，但这是一个好习惯)
+    const floorGeo = new THREE.PlaneGeometry(HALL_WIDTH, 1500);
     const floorMat = new THREE.MeshStandardMaterial({ 
         color: 0xe3d2c0, roughness: 0.6, metalness: 0.1
     });
@@ -112,11 +121,8 @@ function buildEndlessHall() {
     floor.receiveShadow = true; 
     scene.add(floor);
 
-    const wallMat = new THREE.MeshStandardMaterial({ 
-        color: 0xfff8ed, roughness: 0.9
-    });
-    // 墙壁高度适应新的 HALL_HEIGHT
-    const wallGeo = new THREE.PlaneGeometry(2000, HALL_HEIGHT);
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xfff8ed, roughness: 0.9 });
+    const wallGeo = new THREE.PlaneGeometry(1500, HALL_HEIGHT);
     
     const leftWall = new THREE.Mesh(wallGeo, wallMat);
     leftWall.position.set(-HALL_WIDTH/2, HALL_HEIGHT/2, 0);
@@ -131,7 +137,7 @@ function buildEndlessHall() {
     scene.add(rightWall);
 
     const skirtMat = new THREE.MeshStandardMaterial({ color: 0x8c7662, roughness:0.8 });
-    const skirtGeo = new THREE.BoxGeometry(0.2, 1.2, 2000); // 踢脚线稍微高一点点
+    const skirtGeo = new THREE.BoxGeometry(0.2, 1.2, 1500); 
     const s1 = new THREE.Mesh(skirtGeo, skirtMat); s1.position.set(-HALL_WIDTH/2 + 0.1, 0.6, 0); s1.receiveShadow=true; scene.add(s1);
     const s2 = new THREE.Mesh(skirtGeo, skirtMat); s2.position.set(HALL_WIDTH/2 - 0.1, 0.6, 0); s2.receiveShadow=true; scene.add(s2);
 }
@@ -141,7 +147,7 @@ function addChineseArt(url, w, h, x, y, z, ry, title, subtitle, desc) {
     group.position.set(x, y, z);
     group.rotation.y = ry;
 
-    const frameGeo = new THREE.BoxGeometry(w + 2.5, h + 2.5, 0.5); // 框稍微厚一点
+    const frameGeo = new THREE.BoxGeometry(w + 2.5, h + 2.5, 0.5);
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x3d291e, roughness: 0.7 });
     const frame = new THREE.Mesh(frameGeo, frameMat);
     frame.castShadow = true; 
@@ -162,18 +168,20 @@ function addChineseArt(url, w, h, x, y, z, ry, title, subtitle, desc) {
     
     canvas.userData = { 
         url: url, title: title, subtitle: subtitle, desc: desc,
-        longDesc: "这是一段关于这幅画作的详细介绍占位符。清晨温暖的阳光穿透长廊，洒落在水墨之间，笔触的干湿浓淡在金色的光辉中更显层次。艺术家通过对传统技法的现代诠释，表达了对自然与心境的独特感悟。这里可以写很长很长，测试一下它是否会溢出玻璃框。应该不会了。" 
+        longDesc: "这是一段关于这幅画作的详细介绍占位符。清晨温暖的阳光穿透长廊，洒落在水墨之间，笔触的干湿浓淡在金色的光辉中更显层次。艺术家通过对传统技法的现代诠释，表达了对自然与心境的独特感悟。" 
     };
     paintings.push(canvas); 
     group.add(canvas);
 
-    // 射灯位置也相应提高
+    // 【性能优化核心 4】移除射灯阴影计算
+    // 射灯现在只负责照亮，不负责产生阴影，大幅减少计算量
     const spotLight = new THREE.SpotLight(0xffe0b0, 60); 
-    spotLight.position.set(0, y + 8, 10); // 相对画作位置提高
+    spotLight.position.set(0, y + 8, 10); 
     spotLight.target = canvas;
     spotLight.angle = Math.PI / 5;
     spotLight.penumbra = 0.6; 
     spotLight.distance = 40;
+    // spotLight.castShadow = true; // <--- 注释掉这一行，性能起飞
     group.add(spotLight);
     group.add(spotLight.target);
 
@@ -259,7 +267,7 @@ function animate() {
         direction.x = Number(moveRight) - Number(moveLeft);
         direction.normalize();
 
-        const speed = 300.0; // 稍微加快一点移动速度适应大空间
+        const speed = 300.0;
         if (moveForward || moveBackward) velocity.z -= direction.z * speed * delta;
         if (moveLeft || moveRight) velocity.x -= direction.x * speed * delta;
 
