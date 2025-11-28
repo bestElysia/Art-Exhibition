@@ -12,43 +12,78 @@ init();
 animate();
 
 function init() {
-    // 创建场景
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff); // 白墙
-    // 添加雾效，让远处边缘柔和消失，制造无限空间感
-    scene.fog = new THREE.Fog(0xffffff, 10, 150); 
+    // 场景背景色改为深色，防止穿模看到白光
+    scene.background = new THREE.Color(0x111111); 
+    // 雾效改为黑色/深灰色，增加神秘感和深邃感
+    scene.fog = new THREE.Fog(0x111111, 10, 100); 
 
-    // 创建相机 (人眼)
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.y = 12; // 视线高度 (约1.2米)
-    camera.position.z = 0;  // 初始位置在房间中心
+    camera.position.set(0, 10, 0); // 站在房间正中央
 
-    // 添加灯光
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2.0); // 环境光
-    hemiLight.position.set(0, 200, 0);
-    scene.add(hemiLight);
+    // === 灯光优化 ===
+    // 1. 环境光 (整体亮度) - 稍微调暗一点，突出画作
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
 
-    // === 2. 控制器设置 ===
+    // 2. 顶部射灯 (模拟画廊顶灯)
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    dirLight.position.set(0, 50, 0);
+    scene.add(dirLight);
+
+    // === 2. 搭建房间 (装修) ===
+    buildRoom();
+
+    // === 3. 挂画 (位置已根据新墙壁微调) ===
+    // 画框尺寸
+    const W = 12; 
+    const H = 10;
+    
+    // --- 左墙画作 (墙在 x = -35) ---
+    // 画挂在 x = -34.5 (贴着墙)
+    addPainting('assets/images/gallery/eg1.jpg', W, H, -34.5, 10, -30, Math.PI/2);
+    addPainting('assets/images/gallery/eg2.jpg', W, H, -34.5, 10, -10, Math.PI/2);
+    addPainting('assets/images/gallery/eg3.jpg', W, H, -34.5, 10,  10, Math.PI/2);
+    addPainting('assets/images/gallery/eg4.jpg', W, H, -34.5, 10,  30, Math.PI/2);
+
+    // --- 右墙画作 (墙在 x = 35) ---
+    // 画挂在 x = 34.5
+    addPainting('assets/images/gallery/eg5.jpg', W, H,  34.5, 10, -30, -Math.PI/2);
+    addPainting('assets/images/gallery/eg6.jpg', W, H,  34.5, 10, -10, -Math.PI/2);
+    addPainting('assets/images/gallery/eg7.jpg', W, H,  34.5, 10,  10, -Math.PI/2);
+    addPainting('assets/images/gallery/eg8.jpg', W, H,  34.5, 10,  30, -Math.PI/2);
+
+    // --- 前方墙画作 (墙在 z = -60) ---
+    // 画挂在 z = -59.5
+    addPainting('assets/images/gallery/eg9.jpg',  W, H, -12, 10, -59.5, 0);
+    addPainting('assets/images/gallery/eg10.jpg', W, H,  12, 10, -59.5, 0);
+
+    // --- 后方墙画作 (墙在 z = 60) ---
+    // 画挂在 z = 59.5
+    addPainting('assets/images/gallery/eg11.jpg', W, H, -12, 10,  59.5, Math.PI);
+    addPainting('assets/images/gallery/eg12.jpg', W, H,  12, 10,  59.5, Math.PI);
+
+
+    // === 控制器 & 渲染器 ===
     controls = new PointerLockControls(camera, document.body);
     const blocker = document.getElementById('blocker');
-    const instructions = document.getElementById('instructions');
-
+    
     blocker.addEventListener('click', () => controls.lock());
-    controls.addEventListener('lock', () => { blocker.style.display = 'none'; });
-    controls.addEventListener('unlock', () => { blocker.style.display = 'flex'; });
+    controls.addEventListener('lock', () => { blocker.style.opacity = 0; setTimeout(() => blocker.style.display='none', 400); });
+    controls.addEventListener('unlock', () => { blocker.style.display = 'flex'; setTimeout(() => blocker.style.opacity = 1, 10); });
     scene.add(controls.getObject());
 
-    // 键盘监听
-    const onKeyDown = (event) => {
-        switch (event.code) {
+    // 键盘
+    const onKeyDown = (e) => {
+        switch (e.code) {
             case 'ArrowUp': case 'KeyW': moveForward = true; break;
             case 'ArrowLeft': case 'KeyA': moveLeft = true; break;
             case 'ArrowDown': case 'KeyS': moveBackward = true; break;
             case 'ArrowRight': case 'KeyD': moveRight = true; break;
         }
     };
-    const onKeyUp = (event) => {
-        switch (event.code) {
+    const onKeyUp = (e) => {
+        switch (e.code) {
             case 'ArrowUp': case 'KeyW': moveForward = false; break;
             case 'ArrowLeft': case 'KeyA': moveLeft = false; break;
             case 'ArrowDown': case 'KeyS': moveBackward = false; break;
@@ -58,44 +93,6 @@ function init() {
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('keyup', onKeyUp);
 
-    // === 3. 搭建地板 ===
-    const floorGeo = new THREE.PlaneGeometry(200, 200);
-    const floorMat = new THREE.MeshBasicMaterial({ color: 0xeeeeee, side: THREE.DoubleSide });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    scene.add(floor);
-
-    // === 4. 核心：挂画 (12张) ===
-    // 假设画框尺寸：宽12，高10 (你可以根据需要自己改)
-    const W = 12; 
-    const H = 10;
-    
-    // --- 左墙 (x = -30) ---
-    // 面向右边 (旋转 90度)
-    addPainting('assets/images/gallery/eg1.jpg', W, H, -30, 10, -30, Math.PI/2);
-    addPainting('assets/images/gallery/eg2.jpg', W, H, -30, 10, -10, Math.PI/2);
-    addPainting('assets/images/gallery/eg3.jpg', W, H, -30, 10,  10, Math.PI/2);
-    addPainting('assets/images/gallery/eg4.jpg', W, H, -30, 10,  30, Math.PI/2);
-
-    // --- 右墙 (x = 30) ---
-    // 面向左边 (旋转 -90度)
-    addPainting('assets/images/gallery/eg5.jpg', W, H,  30, 10, -30, -Math.PI/2);
-    addPainting('assets/images/gallery/eg6.jpg', W, H,  30, 10, -10, -Math.PI/2);
-    addPainting('assets/images/gallery/eg7.jpg', W, H,  30, 10,  10, -Math.PI/2);
-    addPainting('assets/images/gallery/eg8.jpg', W, H,  30, 10,  30, -Math.PI/2);
-
-    // --- 前方墙 (z = -50) ---
-    // 面向你 (旋转 0)
-    addPainting('assets/images/gallery/eg9.jpg',  W, H, -12, 10, -50, 0);
-    addPainting('assets/images/gallery/eg10.jpg', W, H,  12, 10, -50, 0);
-
-    // --- 后方墙 (z = 50) ---
-    // 背向你 (旋转 180度)
-    addPainting('assets/images/gallery/eg11.jpg', W, H, -12, 10,  50, Math.PI);
-    addPainting('assets/images/gallery/eg12.jpg', W, H,  12, 10,  50, Math.PI);
-
-
-    // === 渲染器 ===
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -103,18 +100,78 @@ function init() {
     window.addEventListener('resize', onWindowResize);
 }
 
-// 辅助函数：创建画框
+// === 装修队：建造房间 ===
+function buildRoom() {
+    // 房间尺寸：宽70，深120，高25
+    const roomWidth = 70;
+    const roomDepth = 120;
+    const roomHeight = 25;
+
+    // 1. 地板 (深灰色混凝土质感)
+    const floorGeo = new THREE.PlaneGeometry(roomWidth, roomDepth);
+    const floorMat = new THREE.MeshStandardMaterial({ 
+        color: 0x333333, // 深灰
+        roughness: 0.8,  // 粗糙一点，不反光
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0;
+    scene.add(floor);
+
+    // 2. 天花板 (纯白)
+    const ceilGeo = new THREE.PlaneGeometry(roomWidth, roomDepth);
+    const ceilMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const ceiling = new THREE.Mesh(ceilGeo, ceilMat);
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = roomHeight;
+    scene.add(ceiling);
+
+    // 3. 墙壁材质 (浅灰色，高级灰)
+    const wallMat = new THREE.MeshStandardMaterial({ 
+        color: 0xe0e0e0, // 浅灰
+        roughness: 0.5 
+    });
+
+    // 左墙
+    createWall(roomDepth, roomHeight, -roomWidth/2, roomHeight/2, 0, Math.PI/2, wallMat);
+    // 右墙
+    createWall(roomDepth, roomHeight, roomWidth/2, roomHeight/2, 0, -Math.PI/2, wallMat);
+    // 前墙
+    createWall(roomWidth, roomHeight, 0, roomHeight/2, -roomDepth/2, 0, wallMat);
+    // 后墙
+    createWall(roomWidth, roomHeight, 0, roomHeight/2, roomDepth/2, Math.PI, wallMat);
+}
+
+// 辅助函数：造一面墙
+function createWall(w, h, x, y, z, ry, material) {
+    const geo = new THREE.PlaneGeometry(w, h);
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.position.set(x, y, z);
+    mesh.rotation.y = ry;
+    scene.add(mesh);
+}
+
+// 辅助函数：挂画
 function addPainting(url, w, h, x, y, z, ry) {
     const texture = new THREE.TextureLoader().load(url);
     texture.colorSpace = THREE.SRGBColorSpace;
     
-    // 画框几何体 (有点厚度)
-    const geometry = new THREE.BoxGeometry(w, h, 0.5);
+    // 画框：BoxGeometry (宽, 高, 厚度)
+    const geometry = new THREE.BoxGeometry(w, h, 0.3);
     
     // 材质
-    const matSide = new THREE.MeshBasicMaterial({ color: 0x222222 }); // 深色边框
-    const matImg = new THREE.MeshBasicMaterial({ map: texture });     // 画
-    const materials = [matSide, matSide, matSide, matSide, matImg, matSide]; // 只有正面贴图
+    const matFrame = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 }); // 黑色磨砂边框
+    const matCanvas = new THREE.MeshBasicMaterial({ map: texture }); // 画心
+    
+    // 材质数组：右左上下前后
+    const materials = [
+        matFrame, // 右
+        matFrame, // 左
+        matFrame, // 上
+        matFrame, // 下
+        matCanvas, // 正面 (画)
+        matFrame  // 背面
+    ];
 
     const mesh = new THREE.Mesh(geometry, materials);
     mesh.position.set(x, y, z);
@@ -141,8 +198,10 @@ function animate() {
         direction.x = Number(moveRight) - Number(moveLeft);
         direction.normalize();
 
-        if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
-        if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
+        // 移动速度 (如果你觉得太快，把 200 改小)
+        const speed = 250.0;
+        if (moveForward || moveBackward) velocity.z -= direction.z * speed * delta;
+        if (moveLeft || moveRight) velocity.x -= direction.x * speed * delta;
 
         controls.moveRight(-velocity.x * delta);
         controls.moveForward(-velocity.z * delta);
