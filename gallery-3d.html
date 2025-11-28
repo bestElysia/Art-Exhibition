@@ -2,21 +2,45 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>3D 虚拟画廊 | Virtual Gallery</title>
+    <title>我的 3D 画展</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; }
+        /* 页面背景改为深灰色，更有质感 */
+        body { margin: 0; overflow: hidden; background-color: #1a1a1a; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
         
-        /* 遮罩层：提示用户点击进入 */
+        /* 遮罩层：半透明黑色 */
         #blocker {
             position: absolute; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.8);
+            background-color: rgba(0,0,0,0.6); /* 变淡一点 */
+            backdrop-filter: blur(5px); /* 加点磨砂玻璃效果 */
             color: white;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             z-index: 999; cursor: pointer;
+            transition: opacity 0.4s;
         }
-        #instructions { font-size: 24px; text-align: center; }
-        .keys { font-size: 16px; margin-top: 20px; color: #aaa; }
+
+        /* 标题和文字改小 */
+        #instructions { text-align: center; }
+        
+        h1 { font-size: 28px; font-weight: 300; letter-spacing: 4px; margin: 0 0 10px 0; text-transform: uppercase; }
+        p { font-size: 14px; color: #ccc; margin: 5px 0; }
+
+        .keys { 
+            font-size: 12px; color: #888; margin-top: 25px; 
+            border-top: 1px solid #444; padding-top: 15px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left;
+        }
+        
+        /* 按钮样式优化 */
+        .btn { 
+            font-size: 14px; letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.4); 
+            padding: 8px 24px; margin-top: 30px; 
+            border-radius: 50px; 
+            background: rgba(255,255,255,0.1); 
+            transition: all 0.3s;
+        }
+        .btn:hover { background: white; color: black; border-color: white; }
     </style>
 
     <script type="importmap">
@@ -31,16 +55,17 @@
 <body>
     <div id="blocker">
         <div id="instructions">
-            <p style="font-size:36px">点击屏幕开始参观</p>
-            <p class="keys">
-                移动: W A S D<br/>
-                视角: 鼠标移动<br/>
-                退出: ESC
-            </p>
+            <h1>Virtual Gallery</h1>
+            <p>点击屏幕进入展厅</p>
+            <div class="btn">开始参观</div>
+            <div class="keys">
+                <span>[W A S D] 移动</span>
+                <span>[鼠标] 环视</span>
+                <span>[ESC] 暂停</span>
+            </div>
         </div>
     </div>
 
     <script type="module" src="assets/js/gallery-3d.js"></script>
 </body>
 </html>
-
