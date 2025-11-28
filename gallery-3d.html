@@ -3,149 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yanxu | 电影长廊</title>
+    <title>Yanxu | 晨光画境</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
 
     <style>
-        /* === 1. 基础设置 === */
+        /* === 1. 晨光暖阳配色系统 === */
         :root {
-            --bg-color: #0b0b0b; /* 电影院深黑 */
-            --text-color: #e0e0e0;
+            /* 背景：暖杏色渐变 */
+            --bg-gradient: linear-gradient(120deg, #fdfbfb 0%, #ffefd5 100%);
+            /* 文字：深咖色 */
+            --text-primary: #5e4b35;
+            --text-secondary: #8c7b66;
+            /* 强调色：淡金 */
             --accent-gold: #d4af37;
+            /* 玻璃质感 */
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 15px 35px rgba(210, 180, 140, 0.25);
         }
 
         body {
             margin: 0; padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background: var(--bg-gradient);
+            color: var(--text-primary);
             font-family: "Songti SC", "Noto Serif SC", serif;
-            overflow-x: hidden; /* 隐藏横向滚动条，用JS控制 */
+            overflow-x: hidden;
         }
 
-        /* 隐藏系统滚动条 */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
-        /* === 2. 加载页 (Opening Title) === */
+        /* === 2. 开场文字 === */
         .intro-section {
             height: 100vh;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            text-align: center;
-            z-index: 10; relative;
+            text-align: center; z-index: 10; relative;
         }
-        .intro-title { font-size: 8vw; font-weight: 300; letter-spacing: 10px; margin: 0; opacity: 0; transform: translateY(50px); }
-        .intro-subtitle { font-size: 1.5vw; color: #666; margin-top: 20px; letter-spacing: 5px; opacity: 0; }
-        .scroll-hint { position: absolute; bottom: 50px; font-size: 12px; color: #444; animation: blink 2s infinite; }
+        .intro-title { 
+            font-size: 8vw; font-weight: bold; letter-spacing: 10px; margin: 0; 
+            background: linear-gradient(to right, #8b5e3c, #d4af37);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            opacity: 0; transform: translateY(50px);
+        }
+        .intro-subtitle { font-size: 1.2rem; color: var(--text-secondary); margin-top: 20px; letter-spacing: 5px; opacity: 0; }
+        .scroll-hint { position: absolute; bottom: 50px; font-size: 12px; color: var(--text-secondary); opacity: 0.6; animation: float 3s infinite ease-in-out; }
 
-        @keyframes blink { 50% { opacity: 0.3; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        /* === 3. 横向画廊容器 === */
+        /* === 3. 画廊轨道 === */
         .gallery-wrapper {
-            width: 400%; /* 宽度取决于图片数量，JS会自动计算，这里先给个大概 */
+            /* 宽度由JS动态计算 */
             height: 100vh;
             display: flex;
+            align-items: center; /* 关键：垂直居中，高度统一 */
             flex-wrap: nowrap;
-            will-change: transform; /* 性能优化 */
-        }
-
-        /* 单个画作容器 */
-        .gallery-item {
-            width: 60vw; /* 每张画占据屏幕 60% 宽 */
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            margin-right: 5vw; /* 画与画的间距 */
-            flex-shrink: 0;
-        }
-
-        /* 画框 */
-        .art-card {
-            position: relative;
-            width: 100%; max-width: 800px;
-            height: 70vh; /* 画框高度 */
-            overflow: hidden; /* 关键：用于视差效果 */
-            cursor: pointer;
-            box-shadow: 0 20px 80px rgba(0,0,0,0.5);
-            transition: transform 0.5s ease;
-        }
-        .art-card:hover { transform: scale(1.02); } /* 悬停微放大 */
-
-        /* 画心 (图片) */
-        .art-img {
-            width: 120%; /* 关键：图片比框大，用于视差移动 */
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            left: -10%; top: 0;
+            padding-left: 10vw; /* 起始留白 */
             will-change: transform;
         }
 
-        /* 画作信息 (悬浮在左下角) */
-        .art-info {
-            position: absolute; bottom: -60px; left: 0;
-            opacity: 0.6; transition: opacity 0.3s;
-        }
-        .gallery-item:hover .art-info { opacity: 1; }
-        .art-title { font-size: 24px; margin: 0; letter-spacing: 2px; }
-        .art-meta { font-size: 14px; color: #666; margin-top: 5px; font-family: sans-serif; }
-
-        /* === 4. 进度条 (类似电影播放进度) === */
-        .progress-bar {
-            position: fixed; bottom: 0; left: 0; height: 4px; background: var(--accent-gold);
-            width: 0%; z-index: 100;
+        .gallery-item {
+            /* 每张画的容器宽度 */
+            width: 50vw; 
+            height: 60vh; /* 统一高度 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 8vw; /* 画作间距 */
+            flex-shrink: 0;
+            position: relative;
         }
 
-        /* === 5. 详情弹窗 (全屏覆盖) === */
+        /* 画框设计：晨光风格 */
+        .art-card {
+            position: relative;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 20px 60px rgba(139, 69, 19, 0.15); /* 暖色投影 */
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            background: white; /* 像装裱的白底 */
+            padding: 15px; /* 留白边框 */
+        }
+        .art-card:hover { transform: scale(1.03); box-shadow: 0 30px 70px rgba(139, 69, 19, 0.25); }
+
+        .art-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            /* 视差效果需配合 overflow: hidden */
+            transition: transform 0.1s; 
+        }
+
+        /* 列表页的信息 (悬浮在画框下方) */
+        .art-preview-info {
+            position: absolute; bottom: -50px; left: 0; text-align: left;
+            opacity: 0.7; transition: opacity 0.3s;
+        }
+        .gallery-item:hover .art-preview-info { opacity: 1; }
+        .art-preview-title { font-size: 18px; font-weight: bold; margin: 0; letter-spacing: 1px; }
+        .art-preview-meta { font-size: 12px; color: var(--text-secondary); margin-top: 5px; font-family: sans-serif; }
+
+        /* === 4. 详情弹窗 (晨光玻璃风格) === */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(255, 245, 235, 0.6); /* 暖色半透明遮罩 */
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             z-index: 999;
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none;
             transition: opacity 0.5s ease;
         }
         .modal.active { opacity: 1; pointer-events: auto; }
-        
-        .modal-img { 
-            max-height: 90vh; max-width: 90vw; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
-        .close-btn {
-            position: absolute; top: 30px; right: 30px;
-            color: white; font-size: 30px; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.2);
-            width: 50px; height: 50px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            transition: all 0.3s;
-        }
-        .close-btn:hover { background: white; color: black; transform: rotate(90deg); }
 
-        /* 颗粒感滤镜 (Film Grain) - 增加电影质感 */
-        .noise-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://assets.codepen.io/13471/noise.png');
-            opacity: 0.05; pointer-events: none; z-index: 9999;
+        /* 弹窗内容容器 */
+        .modal-content-box {
+            position: relative;
+            width: 95vw; height: 92vh; max-width: 1600px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            padding: 20px 20px 50px 20px; /* 底部留空给热度 */
+            box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center;
+            transform: scale(0.95); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
         }
+        .modal.active .modal-content-box { transform: scale(1); }
+
+        /* 大图 */
+        .modal-img {
+            max-width: 100%; max-height: 75vh;
+            box-shadow: 0 10px 40px rgba(100, 70, 50, 0.15);
+            object-fit: contain;
+        }
+
+        /* 简介区域 */
+        .modal-text {
+            margin-top: 20px; text-align: center;
+            max-width: 800px;
+            color: var(--text-primary);
+            max-height: 12vh; overflow-y: auto; /* 超长滚动 */
+        }
+        .modal-text::-webkit-scrollbar { width: 4px; }
+        .modal-text::-webkit-scrollbar-thumb { background: rgba(139,69,19,0.2); border-radius: 4px; }
+
+        .modal-title { font-size: 28px; font-weight: bold; letter-spacing: 3px; margin: 0 0 5px 0; }
+        .modal-desc { font-size: 14px; line-height: 1.6; opacity: 0.9; }
+
+        /* 左下角浏览人数 */
+        .view-badge {
+            position: absolute; bottom: 20px; left: 30px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: var(--text-secondary); font-family: sans-serif; font-weight: bold;
+        }
+        .view-badge svg { width: 18px; height: 18px; fill: var(--text-secondary); opacity: 0.8; }
+
+        /* 关闭按钮 */
+        .close-btn {
+            position: absolute; top: 20px; right: 20px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.8);
+            color: var(--text-primary); font-size: 20px;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .close-btn:hover { background: #fff; transform: rotate(90deg); box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+
+        /* 进度条 */
+        .progress-bar {
+            position: fixed; bottom: 0; left: 0; height: 3px; background: var(--accent-gold);
+            width: 0%; z-index: 100;
+        }
+        
+        /* 暂停自动播放按钮 (可选) */
+        .play-status {
+            position: fixed; bottom: 20px; right: 20px;
+            font-size: 10px; color: var(--text-secondary); opacity: 0.5;
+            letter-spacing: 1px; z-index: 50;
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="noise-overlay"></div>
     <div class="progress-bar"></div>
+    <div class="play-status">AUTO SCROLLING</div>
 
     <div class="modal" id="detail-modal">
-        <div class="close-btn" id="close-btn">✕</div>
-        <img src="" alt="" class="modal-img" id="modal-img">
+        <div class="modal-content-box">
+            <div class="close-btn" id="close-btn">✕</div>
+            <img src="" alt="" class="modal-img" id="modal-img">
+            
+            <div class="modal-text">
+                <div class="modal-title" id="m-title">标题</div>
+                <div class="modal-desc" id="m-desc">作品简介...</div>
+            </div>
+
+            <div class="view-badge">
+                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                <span id="m-views">0</span>
+            </div>
+        </div>
     </div>
 
     <section class="intro-section">
         <h1 class="intro-title">YANXU</h1>
-        <p class="intro-subtitle">CHINESE PAINTING EXHIBITION</p>
+        <p class="intro-subtitle">CHINESE PAINTING · 晨光画境</p>
         <div class="scroll-hint">SCROLL TO EXPLORE</div>
     </section>
 
@@ -153,125 +218,146 @@
         </div>
 
     <script>
-        // === 1. 图片配置 (你可以把50张图都填这里) ===
-        // 这里我写个循环生成 12 张图的逻辑，重复使用
+        // === 1. 数据配置 (模拟50幅画) ===
         const artworks = [];
-        const baseImages = 12; // 你有 eg1.jpg ~ eg12.jpg
+        const baseCount = 12; // 你有 eg1.jpg ~ eg12.jpg
         
-        for(let i=1; i<=12; i++) {
+        // 生成 50 个数据
+        for(let i=1; i<=50; i++) {
+            // 循环使用 1-12 的图片
+            const imgIndex = (i - 1) % baseCount + 1;
+            
+            // 生成随机浏览数
+            const views = Math.floor(Math.random() * 20000) + 1200;
+
             artworks.push({
-                src: `assets/images/gallery/eg${i}.jpg`,
+                src: `assets/images/gallery/eg${imgIndex}.jpg`,
                 title: `作品 No.${i}`,
                 year: `202${i%5}`,
-                size: "138x69cm"
+                size: "138x69cm",
+                views: views.toLocaleString(),
+                desc: "这里是作品简介的占位符。晨光熹微，水墨交融。艺术家通过对传统笔墨的现代解构，展现了独特的东方韵味与人文关怀。画面细腻，意境深远。"
             });
         }
-        // 为了演示长廊，我们复制几倍数据
-        const totalArtworks = [...artworks, ...artworks, ...artworks]; // 36张图
 
-        // === 2. 动态生成 HTML ===
+        // === 2. 动态生成 DOM ===
         const wrapper = document.getElementById('gallery-wrapper');
-        
-        // 重新计算容器宽度：每张图60vw + 间距5vw + 最后的留白
-        wrapper.style.width = `${totalArtworks.length * 65 + 50}vw`;
+        // 计算宽度：每张图 50vw + 间距 8vw
+        wrapper.style.width = `${artworks.length * 58 + 50}vw`;
 
-        totalArtworks.forEach((art, index) => {
+        artworks.forEach((art) => {
             const item = document.createElement('div');
             item.className = 'gallery-item';
             
-            // 偶数图片稍微向下偏移，制造错落感
-            const offset = index % 2 === 0 ? 'translateY(5vh)' : 'translateY(-5vh)';
-            item.style.transform = offset;
-
+            // 存数据到 data 属性，方便点击时读取
             item.innerHTML = `
-                <div class="art-card" onclick="openModal('${art.src}')">
+                <div class="art-card" 
+                     onclick="openModal('${art.src}', '${art.title}', '${art.desc}', '${art.views}')">
                     <img src="${art.src}" class="art-img" alt="${art.title}">
                 </div>
-                <div class="art-info">
-                    <h2 class="art-title">${art.title}</h2>
-                    <p class="art-meta">${art.year} · ${art.size}</p>
+                <div class="art-preview-info">
+                    <h2 class="art-preview-title">${art.title}</h2>
+                    <p class="art-preview-meta">${art.year} · ${art.size}</p>
                 </div>
             `;
             wrapper.appendChild(item);
         });
 
-        // === 3. 初始化动画 (GSAP + ScrollTrigger) ===
+        // === 3. 动画逻辑 (GSAP + ScrollTrigger) ===
         gsap.registerPlugin(ScrollTrigger);
 
-        // A. 开场文字动画
+        // 开场动画
         const tl = gsap.timeline();
         tl.to(".intro-title", { opacity: 1, y: 0, duration: 1.5, ease: "power4.out" })
           .to(".intro-subtitle", { opacity: 1, duration: 1, delay: -1 });
 
-        // B. 核心：将垂直滚动转换为水平滚动
+        // 横向滚动转换
         const sections = gsap.utils.toArray(".gallery-item");
         
         const scrollTween = gsap.to(sections, {
-            xPercent: -100 * (sections.length - 1), // 向左移动所有图片的总长度
-            ease: "none", // 匀速，由滚动条控制速度
+            xPercent: -100 * (sections.length - 1), 
+            ease: "none",
             scrollTrigger: {
                 trigger: ".gallery-wrapper",
-                pin: true,   // 钉住页面，把垂直滚动变成水平动画
-                scrub: 1,    // 1秒的平滑延迟，制造阻尼感
-                // 滚动距离：为了让滚动不那么快，设为宽度的水平距离
-                end: () => "+=" + document.querySelector(".gallery-wrapper").offsetWidth,
-                // 更新进度条
-                onUpdate: self => {
-                    gsap.to(".progress-bar", { width: self.progress * 100 + "%", ease: "none", duration: 0.1 });
-                }
+                pin: true,
+                scrub: 1, // 增加阻尼感，更平滑
+                end: () => "+=" + document.querySelector(".gallery-wrapper").offsetWidth
             }
         });
 
-        // C. 图片内部视差效果 (Parallax)
-        // 让图片移动速度比框慢一点，产生“窗户”感
-        sections.forEach((section) => {
-            const img = section.querySelector(".art-img");
-            gsap.to(img, {
-                xPercent: 20, // 图片向右微移
-                ease: "none",
-                scrollTrigger: {
-                    trigger: section,
-                    containerAnimation: scrollTween, // 必须链接到主水平滚动
-                    start: "left right",
-                    end: "right left",
-                    scrub: true
-                }
-            });
+        // 更新进度条
+        gsap.to(".progress-bar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".gallery-wrapper",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0
+            }
         });
 
-        // === 4. Lenis 平滑滚动 (这是让网页有“高贵感”的关键) ===
+        // === 4. 平滑滚动 & 自动播放 (Auto Scroll) ===
         const lenis = new Lenis({
-            duration: 1.2,
+            duration: 1.5, // 滚动惯性
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            orientation: 'vertical', 
             smoothWheel: true
         });
 
+        let isAutoScrolling = true; // 自动播放开关
+        let autoScrollSpeed = 1.5;  // 自动播放速度 (像素/帧)
+
         function raf(time) {
             lenis.raf(time);
+            
+            // 核心：自动滚动逻辑
+            // 如果开启了自动且弹窗没打开
+            if (isAutoScrolling && !document.body.classList.contains('modal-open')) {
+                // 模拟向下滚动，这会触发 ScrollTrigger 的横向动画
+                window.scrollBy(0, autoScrollSpeed);
+            }
+            
             requestAnimationFrame(raf);
         }
         requestAnimationFrame(raf);
 
+        // 交互逻辑：鼠标放上去暂停，移开继续
+        // 或者：用户手动滚动时，其实 scrollBy 会叠加，感觉就像“加速”
+        // 这里做一个简单的处理：鼠标悬停在画廊上时，变慢或暂停，方便点击
+        wrapper.addEventListener('mouseenter', () => { isAutoScrolling = false; document.querySelector('.play-status').innerText = "PAUSED"; });
+        wrapper.addEventListener('mouseleave', () => { isAutoScrolling = true; document.querySelector('.play-status').innerText = "AUTO SCROLLING"; });
+
+
         // === 5. 弹窗逻辑 ===
         const modal = document.getElementById('detail-modal');
-        const modalImg = document.getElementById('modal-img');
+        const mImg = document.getElementById('modal-img');
+        const mTitle = document.getElementById('m-title');
+        const mDesc = document.getElementById('m-desc');
+        const mViews = document.getElementById('m-views');
         const closeBtn = document.getElementById('close-btn');
 
-        window.openModal = function(src) {
-            modalImg.src = src;
+        window.openModal = function(src, title, desc, views) {
+            mImg.src = src;
+            mTitle.innerText = title;
+            mDesc.innerText = desc;
+            mViews.innerText = views;
+            
             modal.classList.add('active');
-            lenis.stop(); // 停止背景滚动
+            document.body.classList.add('modal-open'); // 禁止自动滚动
+            lenis.stop(); // 禁止背景滚动
         };
 
         function closeModal() {
             modal.classList.remove('active');
-            lenis.start(); // 恢复背景滚动
+            document.body.classList.remove('modal-open');
+            lenis.start();
+            // 稍微延迟一点恢复自动滚动，防止立刻跳动
+            setTimeout(() => { isAutoScrolling = true; }, 500);
         }
 
         closeBtn.onclick = closeModal;
         modal.onclick = (e) => {
-            if(e.target === modal) closeModal();
+            if(e.target === modal || e.target.classList.contains('modal-content-box')) closeModal();
         };
 
     </script>
