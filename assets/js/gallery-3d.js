@@ -27,12 +27,12 @@ animate();
 function init() {
     scene = new THREE.Scene();
     
-    // === 1. 暗色模式修改点 ===
-    // 使用极深的灰黑色背景，护眼且高级
-    const fogColor = 0x050505; 
+    // === 1. 氛围修改：晨光暖阳 ===
+    // 背景色：柔和的暖杏色/晨曦光
+    const fogColor = 0xffeadd; 
     scene.background = new THREE.Color(fogColor); 
-    // 雾气让远处的黑暗更加深邃
-    scene.fog = new THREE.Fog(fogColor, 20, 150); 
+    // 雾气：柔和的金色雾霭，让远处融入晨光中
+    scene.fog = new THREE.FogExp2(fogColor, 0.008); // 使用指数雾，过渡更自然柔和
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 9, 30); 
@@ -40,16 +40,34 @@ function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    // 开启更柔和的阴影类型
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+    // 开启色调映射，让光照更真实
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2; 
     document.body.appendChild(renderer.domElement);
 
     raycaster = new THREE.Raycaster();
 
-    // === 2. 灯光修改点 (明暗对比) ===
-    // 环境光调暗，不再是亮堂堂的
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.15); 
+    // === 2. 灯光系统大改造 (模拟晨光) ===
+    
+    // A. 环境光：大幅增强，使用暖金色，照亮整个空间
+    const ambientLight = new THREE.AmbientLight(0xffdcb4, 0.7); 
     scene.add(ambientLight);
+
+    // B. 主光源：模拟太阳的平行光 (关键!)
+    // 从左后方射入，营造长长的柔和影子
+    const sunLight = new THREE.DirectionalLight(0xffaa77, 1.5); // 暖橙色太阳光
+    sunLight.position.set(-30, 50, 50); // 太阳位置
+    sunLight.castShadow = true;
+    // 扩大太阳光阴影范围
+    sunLight.shadow.camera.left = -100; sunLight.shadow.camera.right = 100;
+    sunLight.shadow.camera.top = 100; sunLight.shadow.camera.bottom = -100;
+    sunLight.shadow.camera.far = 200;
+    sunLight.shadow.mapSize.width = 2048; sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.bias = -0.001; // 防止阴影波纹
+    scene.add(sunLight);
 
     buildEndlessHall();
 
@@ -66,19 +84,17 @@ function init() {
 
         let leftArtNum = (normalizedRowIndex * 2) + 1; 
         let leftImgPath = `assets/images/gallery/eg${leftImgIdx + 1}.jpg`;
-        let lW = 12 + (leftImgIdx % 3) * 2; 
-        let lH = 12 + (leftImgIdx % 2) * 4;
+        let lW = 12 + (leftImgIdx % 3) * 2; let lH = 12 + (leftImgIdx % 2) * 4;
         
         addChineseArt(leftImgPath, lW, lH, leftX, 9, zPos, Math.PI/2, 
-            `作品 No.${leftArtNum}`, "Yanxu", `系列作品 ${leftArtNum}/50`);
+            `作品 No.${leftArtNum}`, "Yanxu系列", `系列作品 ${leftArtNum}/50`);
 
         let rightArtNum = (normalizedRowIndex * 2) + 2;
         let rightImgPath = `assets/images/gallery/eg${rightImgIdx + 1}.jpg`;
-        let rW = 12 + (rightImgIdx % 3) * 2;
-        let rH = 12 + (rightImgIdx % 2) * 4;
+        let rW = 12 + (rightImgIdx % 3) * 2; let rH = 12 + (rightImgIdx % 2) * 4;
 
         addChineseArt(rightImgPath, rW, rH, rightX, 9, zPos, -Math.PI/2, 
-            `作品 No.${rightArtNum}`, "Yanxu", `系列作品 ${rightArtNum}/50`);
+            `作品 No.${rightArtNum}`, "Yanxu系列", `系列作品 ${rightArtNum}/50`);
     }
 
     setupControls();
@@ -87,24 +103,24 @@ function init() {
     document.addEventListener('click', onMouseClick);
 }
 
-// === 建造结构 (暗黑材质) ===
+// === 建造结构 (明亮材质) ===
 function buildEndlessHall() {
-    // 1. 地板：深色反光地面 (像黑色大理石)
+    // 1. 地板：暖米色亚光石材 (受光更好)
     const floorGeo = new THREE.PlaneGeometry(HALL_WIDTH, 2000);
     const floorMat = new THREE.MeshStandardMaterial({ 
-        color: 0x111111, // 接近黑色
-        roughness: 0.2,  // 比较光滑，有倒影
-        metalness: 0.4   // 稍微有点金属感
+        color: 0xe3d2c0, // 暖米色
+        roughness: 0.6,  // 比较粗糙，柔和反光
+        metalness: 0.1
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
+    floor.receiveShadow = true; // 接收太阳光阴影
     scene.add(floor);
 
-    // 2. 墙壁：深灰色哑光墙
+    // 2. 墙壁：暖白奶油色墙面
     const wallMat = new THREE.MeshStandardMaterial({ 
-        color: 0x222222, // 深灰
-        roughness: 0.9   // 粗糙，不反光，吸光
+        color: 0xfff8ed, // 奶油白
+        roughness: 0.9   // 哑光
     });
     const wallGeo = new THREE.PlaneGeometry(2000, HALL_HEIGHT);
     
@@ -120,28 +136,28 @@ function buildEndlessHall() {
     rightWall.receiveShadow = true;
     scene.add(rightWall);
 
-    // 踢脚线
-    const skirtMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    // 踢脚线：浅棕木色
+    const skirtMat = new THREE.MeshStandardMaterial({ color: 0x8c7662, roughness:0.8 });
     const skirtGeo = new THREE.BoxGeometry(0.2, 0.8, 2000);
-    const s1 = new THREE.Mesh(skirtGeo, skirtMat); s1.position.set(-HALL_WIDTH/2 + 0.1, 0.4, 0); scene.add(s1);
-    const s2 = new THREE.Mesh(skirtGeo, skirtMat); s2.position.set(HALL_WIDTH/2 - 0.1, 0.4, 0); scene.add(s2);
+    const s1 = new THREE.Mesh(skirtGeo, skirtMat); s1.position.set(-HALL_WIDTH/2 + 0.1, 0.4, 0); s1.receiveShadow=true; scene.add(s1);
+    const s2 = new THREE.Mesh(skirtGeo, skirtMat); s2.position.set(HALL_WIDTH/2 - 0.1, 0.4, 0); s2.receiveShadow=true; scene.add(s2);
 }
 
-function addChineseArt(url, w, h, x, y, z, ry, title, author, desc) {
+function addChineseArt(url, w, h, x, y, z, ry, title, subtitle, desc) {
     const group = new THREE.Group();
     group.position.set(x, y, z);
     group.rotation.y = ry;
 
-    // 框 (深黑胡桃)
+    // 框 (深胡桃木，对比墙面)
     const frameGeo = new THREE.BoxGeometry(w + 2, h + 2, 0.4);
-    const frameMat = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.5 });
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x3d291e, roughness: 0.7 });
     const frame = new THREE.Mesh(frameGeo, frameMat);
-    frame.castShadow = true;
+    frame.castShadow = true; // 框投射阴影
     group.add(frame);
 
-    // 衬纸 (深米灰色，不要太亮，太亮会刺眼)
+    // 衬纸 (暖米白，雅致)
     const mountGeo = new THREE.PlaneGeometry(w + 1.6, h + 1.6);
-    const mountMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.9 });
+    const mountMat = new THREE.MeshStandardMaterial({ color: 0xfdfaf5, roughness: 0.9 });
     const mount = new THREE.Mesh(mountGeo, mountMat);
     mount.position.z = 0.21;
     group.add(mount);
@@ -150,23 +166,27 @@ function addChineseArt(url, w, h, x, y, z, ry, title, author, desc) {
     const texture = new THREE.TextureLoader().load(url);
     texture.colorSpace = THREE.SRGBColorSpace;
     const canvasGeo = new THREE.PlaneGeometry(w, h);
-    const canvasMat = new THREE.MeshBasicMaterial({ map: texture });
+    // 使用 StandardMaterial 让画作也能受光照影响 (更真实)
+    const canvasMat = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.8 });
     const canvas = new THREE.Mesh(canvasGeo, canvasMat);
     canvas.position.z = 0.22;
     
-    // 绑定数据
-    canvas.userData = { url: url, title: title, date: author, desc: desc };
+    // 绑定数据 (新增了 longDesc 占位符)
+    canvas.userData = { 
+        url: url, title: title, subtitle: subtitle, desc: desc,
+        longDesc: "这是一段关于这幅画作的详细介绍占位符。清晨温暖的阳光穿透长廊，洒落在水墨之间，笔触的干湿浓淡在金色的光辉中更显层次。艺术家通过对传统技法的现代诠释，表达了对自然与心境的独特感悟。" 
+    };
     paintings.push(canvas); 
     group.add(canvas);
 
-    // 射灯 (暖光，聚焦画作)
-    const spotLight = new THREE.SpotLight(0xfff0e0, 200); // 强度增加到200，因为环境黑
+    // 射灯 (辅助光，削弱强度，因为环境已经很亮了)
+    const spotLight = new THREE.SpotLight(0xffe0b0, 50); // 暖光，强度大幅降低
     spotLight.position.set(0, 15, 8); 
     spotLight.target = canvas;
-    spotLight.angle = Math.PI / 6;
-    spotLight.penumbra = 0.4; // 边缘柔和
-    spotLight.distance = 35;
-    spotLight.castShadow = true;
+    spotLight.angle = Math.PI / 5;
+    spotLight.penumbra = 0.6; 
+    spotLight.distance = 30;
+    // spotLight.castShadow = true; // 关闭射灯阴影，主要靠太阳光投射，避免双重阴影太乱
     group.add(spotLight);
     group.add(spotLight.target);
 
@@ -185,23 +205,22 @@ function onMouseClick(event) {
     }
 }
 
-// === 核心修改：显示详情 + 生成随机热度 ===
+// === 更新弹窗数据显示逻辑 ===
 function showDetailModal(data) {
     const modal = document.getElementById('detail-modal');
     document.getElementById('detail-img').src = data.url;
     document.getElementById('modal-title').innerText = data.title;
-    document.getElementById('modal-desc').innerText = data.date + " · " + data.desc;
+    document.getElementById('modal-subtitle').innerText = data.subtitle + " · " + data.desc;
     
-    // 生成“假”的浏览数
-    // 算法：根据标题的字符代码求和，确保同一幅画每次打开数字一样
+    // 填充新的简介字段
+    document.getElementById('modal-long-desc').innerText = data.longDesc;
+    
+    // 生成随机热度
     let seed = 0;
-    for (let i = 0; i < data.title.length; i++) {
-        seed += data.title.charCodeAt(i);
-    }
-    // 算出 1000 - 50000 之间的数字
+    for (let i = 0; i < data.title.length; i++) { seed += data.title.charCodeAt(i); }
     const views = (seed * 12345) % 49000 + 1000;
     
-    // 加上逗号 (1,234)
+    // 只显示数字
     document.getElementById('view-count').innerText = views.toLocaleString();
 
     modal.style.display = 'flex';
