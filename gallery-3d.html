@@ -15,30 +15,30 @@
             --text-dark: #1d1d1f;       /* Apple 深空灰 */
             --text-light: #86868b;      /* Apple 浅灰 */
             --accent-gold: #cfa858;     /* 晨光金 */
-            --bg-gradient: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
         }
 
         html, body {
             margin: 0; padding: 0;
             width: 100%; 
             min-height: 100vh;
-            /* 核心修改：使用苹果系统字体栈 (San Francisco / PingFang SC) */
+            /* 苹果系统字体栈 */
             font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased; /* 让字体在 Mac 上更清晰 */
+            -webkit-font-smoothing: antialiased;
             background: #fdfbfb;
             color: var(--text-dark);
             overscroll-behavior: none; 
+            touch-action: none; /* 接管触摸，实现自定义滑动方向 */
         }
 
         html.lenis, html.lenis body { height: auto; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
 
-        /* === 2. Loading 界面 (新增) === */
+        /* === 2. Loading 界面 === */
         .loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff;
-            z-index: 10000; /* 最高层级 */
+            z-index: 10000; 
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 0.8s ease, visibility 0.8s;
         }
@@ -101,7 +101,7 @@
         .music-btn svg { width: 18px; height: 18px; fill: var(--text-dark); }
         .music-btn.playing { background: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,0.3); }
 
-        /* === 5. 开场 Intro === */
+        /* === 5. 开场 Intro (无按钮版) === */
         .intro-section {
             height: 100vh; width: 100%;
             display: flex; flex-direction: column;
@@ -113,16 +113,15 @@
             transition: opacity 1.5s ease-in-out, visibility 1.5s;
         }
         
-        /* 初始隐藏内容，等待 Loading 完成后再显示 */
         .intro-content {
-            transform: translateY(-8vh); 
+            transform: translateY(-5vh); 
             opacity: 0; transition: opacity 1s ease;
+            display: flex; flex-direction: column; align-items: center;
         }
         .intro-content.visible { opacity: 1; }
 
         .intro-section.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         
-        /* 标题字体可以微调，用 PingFang 会更现代 */
         .intro-title { 
             font-size: 10vw; font-weight: 700; letter-spacing: 8px; margin: 0; 
             background: linear-gradient(45deg, #8b5e3c, #cfa858);
@@ -131,16 +130,25 @@
         }
         .intro-subtitle { font-size: 1.2rem; color: var(--text-light); margin-top: 20px; letter-spacing: 4px; font-weight: 400; }
         
-        .start-btn {
-            margin-top: 60px; padding: 15px 45px;
-            border: none; color: #fff;
-            font-size: 14px; letter-spacing: 3px; font-weight: 500;
-            background: linear-gradient(90deg, #cfa858, #a67c52);
-            border-radius: 50px; cursor: pointer;
-            box-shadow: 0 10px 30px rgba(166, 124, 82, 0.25);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        /* 替代按钮的滚动提示 */
+        .scroll-to-enter-hint {
+            margin-top: 80px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            color: var(--accent-gold); font-size: 12px; letter-spacing: 2px;
+            animation: pulseFade 2s infinite;
         }
-        .start-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(166, 124, 82, 0.35); }
+        .scroll-icon {
+            width: 24px; height: 40px; border: 1.5px solid var(--accent-gold);
+            border-radius: 12px; position: relative;
+        }
+        .scroll-icon::after {
+            content: ''; position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+            width: 2px; height: 6px; background: var(--accent-gold); border-radius: 2px;
+            animation: scrollDown 1.5s infinite;
+        }
+
+        @keyframes pulseFade { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        @keyframes scrollDown { 0% { top: 6px; opacity: 1; } 100% { top: 20px; opacity: 0; } }
 
         /* === 6. 画廊轨道 === */
         .gallery-container {
@@ -170,7 +178,7 @@
             box-shadow: 0 20px 60px rgba(166, 124, 82, 0.1);
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
             transform: translateZ(0); 
-            border-radius: 2px; /* 稍微一点点圆角，更柔和 */
+            border-radius: 2px;
         }
         .art-card:hover { transform: scale(1.02) translateY(-10px); box-shadow: 0 40px 80px rgba(166, 124, 82, 0.2); }
 
@@ -245,19 +253,22 @@
         }
         .modal-title { font-size: 30px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: 1px; color: #1d1d1f; }
         
+        /* 修改后的元数据行：去除卡片背景，自然拼接 */
         .modal-meta-row {
-            display: flex; align-items: center; gap: 20px;
+            display: flex; align-items: center; gap: 10px; /* 间距缩小 */
             margin-bottom: 25px;
             letter-spacing: 0.5px;
             color: #86868b; font-size: 13px; font-weight: 500;
         }
-        .modal-views-box {
-            display: flex; align-items: center; gap: 6px;
-            background: rgba(255,255,255,0.5);
-            padding: 4px 10px; border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.6);
+        /* 分隔符 */
+        .modal-meta-divider {
+            margin: 0 2px; opacity: 0.5;
         }
-        .modal-views-box svg { width: 14px; height: 14px; fill: #86868b; }
+        /* 纯文本样式的浏览量 */
+        .modal-views-text {
+            display: flex; align-items: center; gap: 5px;
+        }
+        .modal-views-text svg { width: 14px; height: 14px; fill: #86868b; }
 
         .modal-desc-scroll {
             font-size: 15px; line-height: 1.8; text-align: justify; color: #424245; 
@@ -294,6 +305,7 @@
             .modal-title { font-size: 24px; margin-bottom: 5px;}
             .modal-desc-scroll { max-height: 100%; font-size: 15px; margin-top: 10px;} 
             .controls-area { top: 20px; right: 20px; gap: 10px; }
+            .scroll-to-enter-hint { margin-top: 50px; }
         }
     </style>
 </head>
@@ -334,7 +346,8 @@
                     
                     <div class="modal-meta-row">
                         <span id="m-year"></span>
-                        <div class="modal-views-box">
+                        <span class="modal-meta-divider">|</span>
+                        <div class="modal-views-text">
                             <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                             <span id="m-views"></span>
                         </div>
@@ -350,7 +363,10 @@
         <div class="intro-content" id="intro-content">
             <h1 class="intro-title">YANXU</h1>
             <p class="intro-subtitle" id="ui-subtitle">CHINESE PAINTING · 晨光画境</p>
-            <button class="start-btn" id="ui-enter-btn" onclick="startGallery()">进入画境</button>
+            <div class="scroll-to-enter-hint">
+                <div class="scroll-icon"></div>
+                <span id="scroll-hint-text">SCROLL TO ENTER</span>
+            </div>
         </div>
     </section>
 
@@ -365,8 +381,8 @@
         const longTextEn = "<br><br>This artwork incorporates the artist's profound philosophy on morning light and life. Every stroke is deliberate, with rich variations in ink tone, telling a story about time and eternity.<br><br>Viewers often feel a spiritual shock beyond vision. The negative space is not empty but full of the flow of Qi. The morning light reflects not just nature, but the state of mind.";
 
         const uiText = {
-            zh: { subtitle: "CHINESE PAINTING · 晨光画境", enterBtn: "进入画境", langBtn: "EN" },
-            en: { subtitle: "CHINESE PAINTING · Art of Morning Light", enterBtn: "ENTER GALLERY", langBtn: "中" }
+            zh: { subtitle: "CHINESE PAINTING · 晨光画境", scrollHint: "滑动进入画境", langBtn: "EN" },
+            en: { subtitle: "CHINESE PAINTING · Art of Morning Light", scrollHint: "SCROLL TO ENTER", langBtn: "中" }
         };
 
         const originalArtworks = [
@@ -394,7 +410,7 @@
         function updateUIText() {
             const t = uiText[currentLang];
             document.getElementById('ui-subtitle').innerText = t.subtitle;
-            document.getElementById('ui-enter-btn').innerText = t.enterBtn;
+            document.getElementById('scroll-hint-text').innerText = t.scrollHint;
             document.getElementById('lang-btn').innerText = t.langBtn;
 
             document.querySelectorAll('.art-preview-title').forEach((el, index) => {
@@ -413,15 +429,13 @@
             updateUIText();
         }
 
-        // === 3. 预加载逻辑 (新增) ===
-        // 在页面生成前，先执行预加载
+        // === 3. 预加载逻辑 ===
         function preloadImages() {
             const loadingScreen = document.getElementById('loading-screen');
             const percentEl = document.getElementById('loading-percent');
             const fillEl = document.getElementById('loading-fill');
             const introContent = document.getElementById('intro-content');
 
-            // 收集所有需要加载的图片 URL (去重)
             const imagesToLoad = [...new Set(originalArtworks.map(a => a.src))];
             let loadedCount = 0;
             const total = imagesToLoad.length;
@@ -433,14 +447,8 @@
 
             imagesToLoad.forEach(src => {
                 const img = new Image();
-                img.onload = () => {
-                    loadedCount++;
-                    updateProgress();
-                };
-                img.onerror = () => {
-                    loadedCount++; // 即使失败也算完成，防止卡死
-                    updateProgress();
-                };
+                img.onload = () => { loadedCount++; updateProgress(); };
+                img.onerror = () => { loadedCount++; updateProgress(); };
                 img.src = src;
             });
 
@@ -448,15 +456,12 @@
                 const percent = Math.round((loadedCount / total) * 100);
                 percentEl.innerText = percent + "%";
                 fillEl.style.width = percent + "%";
-                
-                if(loadedCount >= total) {
-                    setTimeout(finishLoading, 500); // 稍微停顿一下看满格
-                }
+                if(loadedCount >= total) setTimeout(finishLoading, 500);
             }
 
             function finishLoading() {
                 loadingScreen.classList.add('hidden');
-                introContent.classList.add('visible'); // 显示 Intro 内容
+                introContent.classList.add('visible'); 
             }
         }
 
@@ -478,7 +483,7 @@
             item.style.width = `${itemWidthVw}vw`;
             item.style.marginRight = `${itemMarginVw}vw`;
             
-            // 外面只保留年份，移除了浏览量
+            // 外面只保留年份
             item.innerHTML = `
                 <div class="art-card" onclick="openModal(${index})">
                     <img src="${art.src}" class="art-img" alt="Artwork" decoding="async">
@@ -493,14 +498,11 @@
 
         const totalVw = paddingLeftVw + (displayArtworks.length * singleItemTotalVw);
         wrapper.style.width = `${totalVw}vw`;
-        
-        const viewportWidth = window.innerWidth;
-        const oneSetWidthPx = (totalItemsCount * singleItemTotalVw) * (viewportWidth / 100);
+        const oneSetWidthPx = (totalItemsCount * singleItemTotalVw) * (window.innerWidth / 100);
 
-        // 启动预加载
         preloadImages();
 
-        // === 5. Lenis & ScrollTrigger (终极流畅配置) ===
+        // === 5. Lenis & ScrollTrigger ===
         gsap.registerPlugin(ScrollTrigger);
 
         const lenis = new Lenis({
@@ -535,12 +537,81 @@
             }
         });
 
-        // === 6. 循环逻辑 ===
+        // === 6. 核心逻辑：滑动进入与触控反转 ===
         let isGalleryStarted = false;
         let isUserScrolling = false;
         let autoScrollSpeed = isMobile ? 1.0 : 1.8; 
         let scrollTimeout;
 
+        // 监听滚动以触发“进入画境”
+        lenis.on('scroll', (e) => {
+            if (!isGalleryStarted) {
+                // 如果向下滚动超过一定阈值，则启动画廊
+                if (e.animatedScroll > 50) {
+                    startGallery();
+                }
+            } else {
+                // 画廊启动后的停止检测
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    if(!document.body.classList.contains('modal-open')) {
+                        performSnap();
+                    }
+                }, 200); 
+            }
+        });
+
+        // == 移动端触控反转逻辑 (核心修改) ==
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        window.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            if(isGalleryStarted) {
+                isUserScrolling = true;
+                clearTimeout(scrollTimeout);
+            }
+        }, {passive: false});
+
+        window.addEventListener('touchmove', (e) => {
+            if(!isGalleryStarted || document.body.classList.contains('modal-open')) return;
+
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            const deltaX = touchX - touchStartX;
+            const deltaY = touchY - touchStartY;
+
+            // 如果是水平滑动主导
+            if(Math.abs(deltaX) > Math.abs(deltaY)) {
+                e.preventDefault(); // 阻止浏览器默认行为
+                
+                // 需求：向左滑动屏幕(deltaX < 0)，图片向右(回顾上一张 -> 滚动条向上)
+                // Lenis vertical scroll down -> GSAP moves images left (Standard)
+                // We want images right -> Lenis scroll up (Decrease)
+                
+                // Sensitivity multiplier
+                const sensitivity = 3.5;
+
+                // 标准逻辑：Finger Left (deltaX < 0) -> Content Left -> Scroll Increase
+                // 反转逻辑：Finger Left (deltaX < 0) -> Content Right -> Scroll Decrease
+                
+                // Lenis.scrollTo 接受目标值，我们基于当前值偏移
+                // deltaX 为负 -> 我们希望 scroll 减小 -> 所以 + deltaX (因为正加负等于减)
+                // 这样：手指向左滑(负值)，scroll值变小，GSAP往回退，图片向右走。完美。
+                lenis.scrollTo(lenis.scroll + (deltaX * sensitivity), { immediate: true });
+                
+                // 更新起始点，实现连续拖动
+                touchStartX = touchX;
+            }
+        }, {passive: false});
+
+        window.addEventListener('touchend', () => {
+             // 松手后交给 snap 逻辑处理
+        });
+
+
+        // === 动画帧循环 ===
         function raf(time) {
             lenis.raf(time);
             
@@ -557,24 +628,13 @@
         }
         requestAnimationFrame(raf);
 
-        ['pointerdown', 'touchstart', 'wheel'].forEach(evt => {
+        ['pointerdown', 'wheel'].forEach(evt => {
             window.addEventListener(evt, () => {
                 if(isGalleryStarted) {
                     isUserScrolling = true;
                     clearTimeout(scrollTimeout);
                 }
             }, {passive: true});
-        });
-
-        lenis.on('scroll', () => {
-            if(isGalleryStarted) {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    if(!document.body.classList.contains('modal-open')) {
-                        performSnap();
-                    }
-                }, 200); 
-            }
         });
 
         function performSnap() {
@@ -598,10 +658,10 @@
         const musicBtn = document.getElementById('music-toggle');
 
         function startGallery() {
+            if(isGalleryStarted) return;
             isGalleryStarted = true;
             document.body.classList.add('started');
             
-            // Intro 淡出
             introSection.classList.add('hidden');
             
             ScrollTrigger.refresh();
@@ -645,7 +705,6 @@
             document.body.classList.add('modal-open');
             lenis.stop();
 
-            // GSAP 弹窗进场动画
             const box = modal.querySelector('.modal-content-box');
             gsap.fromTo(box, 
                 { scale: 0.8, opacity: 0 },
@@ -655,7 +714,6 @@
 
         function closeModal() {
             const box = modal.querySelector('.modal-content-box');
-            // 离场动画
             gsap.to(box, {
                 scale: 0.9, opacity: 0, duration: 0.3, ease: "power2.in",
                 onComplete: () => {
