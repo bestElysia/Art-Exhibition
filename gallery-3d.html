@@ -9,39 +9,38 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
 
     <style>
-        /* === 1. 晨光暖阳配色 === */
+        /* === 1. 配色与基础 === */
         :root {
-            --bg-gradient: linear-gradient(120deg, #fdfbfb 0%, #ffefd5 100%);
+            /* 背景留空，交给 Three.js */
             --text-primary: #5e4b35;
             --text-secondary: #8c7b66;
             --accent-gold: #d4af37;
-            --glass-bg: rgba(255, 255, 255, 0.75);
-            --glass-border: rgba(255, 255, 255, 0.9);
-            --glass-shadow: 0 20px 40px rgba(210, 180, 140, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 20px 50px rgba(210, 180, 140, 0.2);
         }
 
         body {
             margin: 0; padding: 0;
-            background: var(--bg-gradient);
+            background: #fdfbfb; /* 加载时的底色 */
             color: var(--text-primary);
             font-family: "Songti SC", "Noto Serif SC", serif;
             overflow-x: hidden;
             overscroll-behavior: none;
-            user-select: none; /* 防止长按选中文字 */
         }
 
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        ::-webkit-scrollbar { width: 0px; }
 
-        /* 3D背景 */
+        /* 【新增】3D背景容器 */
         #webgl-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; pointer-events: none;
+            z-index: -1; /* 放在最底层 */
+            pointer-events: none; /* 不阻挡交互 */
         }
 
-        /* === 2. UI 元素 === */
+        /* === 2. 开场与UI === */
         .intro-section {
             height: 100vh;
             display: flex; flex-direction: column;
@@ -53,66 +52,84 @@
             background: linear-gradient(to right, #8b5e3c, #d4af37);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             opacity: 0; transform: translateY(50px);
+            text-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
         }
         @media (max-width: 768px) { .intro-title { font-size: 15vw; letter-spacing: 5px; } }
         .intro-subtitle { font-size: 1.2rem; color: var(--text-secondary); margin-top: 20px; letter-spacing: 5px; opacity: 0; }
         
+        /* 音乐按钮 */
         #music-btn {
             position: fixed; top: 30px; right: 30px; z-index: 100;
             width: 40px; height: 40px; border-radius: 50%;
             border: 1px solid var(--accent-gold);
             display: flex; justify-content: center; align-items: center;
-            cursor: pointer; opacity: 0.6; transition: all 0.3s;
-            animation: spin 4s linear infinite; animation-play-state: paused;
-            background: rgba(255,255,255,0.4);
+            cursor: pointer; opacity: 0.7; transition: all 0.3s;
+            background: rgba(255,255,255,0.3); backdrop-filter: blur(5px);
+            animation: spin 5s linear infinite; animation-play-state: paused;
         }
-        #music-btn.playing { animation-play-state: running; opacity: 1; }
+        #music-btn.playing { animation-play-state: running; opacity: 1; background: rgba(255,255,255,0.8); }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* === 3. 画廊轨道 === */
+        /* === 3. 画廊轨道 (布局优化) === */
         .gallery-wrapper {
-            height: 100vh; display: flex; align-items: center; flex-wrap: nowrap;
+            height: 100vh;
+            display: flex; align-items: center; flex-wrap: nowrap;
             padding-left: 10vw; will-change: transform;
         }
+
+        /* 单个画作容器：高度增加，容纳下方文字 */
         .gallery-item {
-            width: 50vw; height: 70vh; 
+            width: 50vw; height: 75vh; 
             display: flex; justify-content: center; align-items: center;
             margin-right: 8vw; flex-shrink: 0; position: relative;
         }
         @media (max-width: 768px) {
             .gallery-wrapper { padding-left: 5vw; }
-            .gallery-item { width: 85vw; height: 65vh; margin-right: 5vw; }
+            .gallery-item { width: 85vw; height: 70vh; margin-right: 5vw; }
         }
 
+        /* 【关键修改】垂直排列容器 */
         .art-container {
             width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column; /* 垂直排列 */
+            align-items: center; /* 水平居中 */
         }
 
+        /* 画框：占据剩余空间，无边框 */
         .art-card {
-            position: relative; width: 100%; flex: 1;
+            position: relative; width: 100%; 
+            flex: 1; /* 撑满剩余高度 */
             overflow: hidden; cursor: pointer;
-            box-shadow: 0 20px 50px rgba(139, 69, 19, 0.15);
+            box-shadow: 0 25px 60px rgba(139, 69, 19, 0.15);
             transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
             background: transparent; padding: 0;
         }
         @media (min-width: 769px) {
-            .art-card:hover { transform: scale(1.02); box-shadow: 0 30px 60px rgba(139, 69, 19, 0.25); }
+            .art-card:hover { transform: scale(1.02); box-shadow: 0 35px 70px rgba(139, 69, 19, 0.25); }
         }
+
         .art-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.1s; }
 
+        /* 【关键修改】标题文字：固定在下方 */
         .art-preview-info {
-            position: relative; margin-top: 20px; text-align: center;
-            flex-shrink: 0; opacity: 0.7; transition: opacity 0.3s;
+            position: relative; /* 不再绝对定位 */
+            margin-top: 20px; /* 与图片的间距 */
+            text-align: center;
+            flex-shrink: 0; /* 防止被压缩 */
+            opacity: 0.8; transition: opacity 0.3s;
         }
+        /* 手机端常显，PC端hover显示更亮 */
+        @media (max-width: 768px) { .art-preview-info { opacity: 1; } }
+        @media (min-width: 769px) { .gallery-item:hover .art-preview-info { opacity: 1; } }
+        
         .art-preview-title { font-size: 20px; font-weight: bold; margin: 0 0 5px 0; letter-spacing: 2px; }
         .art-preview-meta { font-size: 13px; color: var(--text-secondary); font-family: sans-serif; margin: 0; }
 
-        /* === 4. 详情弹窗 (模态框) === */
+        /* === 4. 液态玻璃弹窗 === */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 245, 235, 0.4);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            background: rgba(255, 245, 235, 0.3); /* 更透的背景，露出3D */
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             z-index: 999;
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
@@ -128,101 +145,50 @@
             border-radius: 24px; box-shadow: var(--glass-shadow);
             padding: 0;
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; transform: scale(0.95); transition: transform 0.5s;
+            overflow: hidden;
+            transform: scale(0.95); transition: transform 0.5s;
         }
         .modal.active .modal-content-box { transform: scale(1); }
-        @media (max-width: 768px) {
-            .modal-content-box { width: 100vw; height: 100vh; border: none; border-radius: 0; }
-        }
+        @media (max-width: 768px) { .modal-content-box { width: 100vw; height: 100vh; border: none; border-radius: 0; } }
 
         .modal-body {
             position: relative; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-
-        /* 模态框里的图片 (可点击提示) */
-        .modal-img-container {
-            position: relative;
-            max-width: 100%; max-height: 82vh;
-            flex-shrink: 1; cursor: zoom-in; /* 鼠标变为放大镜 */
-        }
         .modal-img {
             width: auto; height: auto; max-width: 100%; max-height: 82vh;
-            object-fit: contain; filter: drop-shadow(0 20px 40px rgba(90, 60, 40, 0.3));
-            display: block;
+            object-fit: contain; filter: drop-shadow(0 20px 40px rgba(90, 60, 40, 0.3)); flex-shrink: 1;
         }
-        /* 放大提示图标 */
-        .zoom-hint {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.4); color: white; padding: 10px 20px; border-radius: 30px;
-            font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.3s;
-            backdrop-filter: blur(5px);
-        }
-        .modal-img-container:hover .zoom-hint { opacity: 1; }
-
         .modal-text {
             width: 100%; padding: 20px 40px 40px 40px; box-sizing: border-box;
             text-align: center;
+            /* 渐变背景遮罩 */
             background: linear-gradient(to top, rgba(255,250,245,0.95) 20%, rgba(255,250,245,0.6) 80%, transparent);
             position: absolute; bottom: 0; left: 0; z-index: 5;
             display: flex; flex-direction: column; align-items: center;
         }
         .modal-title { font-size: 26px; font-weight: bold; letter-spacing: 2px; margin: 0 0 5px 0; }
-        .modal-desc { 
-            font-size: 14px; line-height: 1.6; opacity: 0.95; 
-            max-width: 800px; max-height: 15vh; overflow-y: auto; 
-        }
+        .modal-desc { font-size: 14px; line-height: 1.6; opacity: 0.95; max-width: 800px; max-height: 15vh; overflow-y: auto; }
 
         .view-badge {
             position: absolute; bottom: 20px; left: 25px; z-index: 10;
             display: flex; align-items: center; gap: 6px;
             font-size: 13px; color: #5e4b35; font-weight: bold;
             background: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 20px;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         .view-badge svg { width: 16px; height: 16px; fill: #5e4b35; }
 
         .close-btn {
             position: absolute; top: 20px; right: 20px;
             width: 44px; height: 44px; border-radius: 50%;
-            background: rgba(255,255,255,0.8); color: #333; font-size: 24px;
+            background: rgba(255,255,255,0.8); 
+            color: #333; font-size: 24px;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; z-index: 20; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: all 0.3s;
         }
         .close-btn:hover { transform: rotate(90deg) scale(1.1); background: #fff; }
-
-        /* === 5. 【新增】全屏看图模式 (Lightbox) === */
-        #lightbox {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: black; z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        #lightbox.active { opacity: 1; pointer-events: auto; }
-        
-        /* Panzoom 容器 */
-        #panzoom-container {
-            width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden;
-        }
-        #lightbox-img {
-            max-width: 100%; max-height: 100%;
-            object-fit: contain;
-            cursor: grab;
-        }
-        #lightbox-img:active { cursor: grabbing; }
-
-        /* Lightbox 关闭按钮 */
-        #lightbox-close {
-            position: absolute; top: 30px; right: 30px;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
-            color: white; font-size: 24px; z-index: 10001;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer;
-        }
 
         .progress-bar {
             position: fixed; bottom: 0; left: 0; height: 4px; background: var(--accent-gold);
@@ -241,29 +207,16 @@
 
     <div class="progress-bar"></div>
 
-    <div id="lightbox">
-        <div id="lightbox-close">✕</div>
-        <div id="panzoom-container">
-            <img id="lightbox-img" src="" alt="Full View">
-        </div>
-    </div>
-
     <div class="modal" id="detail-modal">
         <div class="modal-content-box">
             <div class="close-btn" id="close-btn">✕</div>
-            
             <div class="modal-body">
-                <div class="modal-img-container" id="modal-img-trigger">
-                    <img src="" alt="" class="modal-img" id="modal-img">
-                    <div class="zoom-hint">点击查看大图</div>
-                </div>
-                
+                <img src="" alt="" class="modal-img" id="modal-img">
                 <div class="modal-text">
                     <div class="modal-title" id="m-title">标题</div>
                     <div class="modal-desc" id="m-desc">简介...</div>
                 </div>
             </div>
-
             <div class="view-badge">
                 <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                 <span id="m-views">0</span>
@@ -280,41 +233,74 @@
         </div>
 
     <script>
-        // === 1. 3D背景逻辑 ===
+        // === 【新增】Three.js 3D背景逻辑 ===
         const canvas = document.querySelector('#webgl-bg');
         const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 限制像素比优化性能
 
         const scene = new THREE.Scene();
+        // 暖色雾气，让远处背景柔和
         scene.fog = new THREE.FogExp2(0xfff0e0, 0.001);
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 5;
 
+        // 创建晨光粒子云
         const particlesGeometry = new THREE.BufferGeometry();
-        const particlesCount = 1200;
+        const particlesCount = 1500; // 粒子数量
         const posArray = new Float32Array(particlesCount * 3);
-        for(let i = 0; i < particlesCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 15; }
+        
+        for(let i = 0; i < particlesCount * 3; i++) {
+            // 在一个大范围内随机生成点
+            posArray[i] = (Math.random() - 0.5) * 15;
+        }
         particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
 
-        const particlesMaterial = new THREE.PointsMaterial({ size: 0.04, color: 0xd4af37, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+        // 暖金色材质
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.04,
+            color: 0xd4af37, // 金色
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending // 发光叠加效果
+        });
+        
+        // 创建两个粒子系统，叠加出层次感
         const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
         scene.add(particlesMesh);
         
+        const particlesMesh2 = new THREE.Points(particlesGeometry, new THREE.PointsMaterial({
+             size: 0.02, color: 0xff7f50, transparent:true, opacity:0.4, blending: THREE.AdditiveBlending
+        }));
+        particlesMesh2.rotation.x = Math.PI / 2;
+        scene.add(particlesMesh2);
+
+        // 动画循环
         function animateBG() {
             requestAnimationFrame(animateBG);
+            // 缓慢旋转
             particlesMesh.rotation.y += 0.0005;
+            particlesMesh.rotation.x += 0.0002;
+            particlesMesh2.rotation.y -= 0.0003;
+            particlesMesh2.rotation.z += 0.0001;
+            // 相机缓慢移动，制造视差
             camera.position.y = Math.sin(Date.now() * 0.0005) * 0.2;
             renderer.render(scene, camera);
         }
         animateBG();
+
+        // 窗口调整
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // === 2. 音乐控制 ===
+
+        // === 以下为原有逻辑 (部分优化) ===
+
+        // 音乐控制
         const bgm = document.getElementById('bgm');
         const musicBtn = document.getElementById('music-btn');
         let musicStarted = false;
@@ -336,11 +322,10 @@
             else { bgm.pause(); musicBtn.classList.remove('playing'); }
         });
 
-        // === 3. 数据与DOM ===
+        // 数据配置
         const artworks = [];
         const baseCount = 12; 
-        const placeholderDesc = "在此处展示作品的详细解读。晨光微露，笔墨横姿。这幅作品采用传统的中国画颜料与现代构图相结合，试图在二维平面中构建出无限的空间感。色彩的运用参考了敦煌壁画的矿物色系，既古朴又充满生命力。随着光线的变化，画面的意境也随之流转，观者可从中体悟到艺术家对自然与人文的深刻思考。";
-
+        const placeholderDesc = "晨光熹微，水墨交融。这幅作品采用传统的中国画颜料与现代构图相结合，试图在二维平面中构建出无限的空间感。色彩的运用参考了敦煌壁画的矿物色系，既古朴又充满生命力。随着光线的变化，画面的意境也随之流转，观者可从中体悟到艺术家对自然与人文的深刻思考。";
         for(let i=1; i<=50; i++) {
             const imgIndex = (i - 1) % baseCount + 1;
             const views = Math.floor(Math.random() * 20000) + 1200;
@@ -354,6 +339,7 @@
             });
         }
 
+        // 动态生成 DOM (结构已优化)
         const wrapper = document.getElementById('gallery-wrapper');
         const isMobile = window.innerWidth <= 768;
         const itemWidth = isMobile ? 90 : 58; 
@@ -362,6 +348,7 @@
         artworks.forEach((art) => {
             const item = document.createElement('div');
             item.className = 'gallery-item';
+            // 【结构修改】art-container 包含 card 和 info
             item.innerHTML = `
                 <div class="art-container">
                     <div class="art-card" 
@@ -377,7 +364,7 @@
             wrapper.appendChild(item);
         });
 
-        // === 4. 动画 (GSAP) ===
+        // GSAP动画
         gsap.registerPlugin(ScrollTrigger);
         const tl = gsap.timeline();
         tl.to(".intro-title", { opacity: 1, y: 0, duration: 1.5, ease: "power4.out" })
@@ -401,109 +388,28 @@
             });
         }
 
-        // === 5. Lenis 平滑滚动 & iOS触摸优化 ===
+        // 平滑滚动 & 自动播放 & iOS触摸
         const lenis = new Lenis({ duration: 1.5, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true, orientation: 'vertical', gestureOrientation: 'vertical' });
-        
         let isAutoScrolling = true;
         let autoScrollSpeed = isMobile ? 0.8 : 1.5;
         let touchStartX = 0; let touchStartY = 0;
-
-        document.addEventListener('touchstart', (e) => {
-            isAutoScrolling = false; 
-            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
-        }, { passive: false });
-
-        document.addEventListener('touchmove', (e) => {
-            if (document.body.classList.contains('modal-open')) return;
-            const diffX = touchStartX - e.touches[0].clientX;
-            const diffY = touchStartY - e.touches[0].clientY;
-            // 优化：横向滑动的判定阈值，防止误触
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                e.preventDefault(); 
-                // 优化：增加灵敏度乘数 (3.5倍)
-                window.scrollBy(0, diffX * 3.5); 
-                touchStartX = e.touches[0].clientX; // 重置起点，让滑动更连贯
-            }
-        }, { passive: false });
-
-        document.addEventListener('touchend', () => {
-            setTimeout(() => { if(!document.body.classList.contains('modal-open')) isAutoScrolling = true; }, 1000);
-        });
-
-        function raf(time) {
-            lenis.raf(time);
-            if (isAutoScrolling && !document.body.classList.contains('modal-open')) {
-                window.scrollBy(0, autoScrollSpeed);
-            }
-            requestAnimationFrame(raf);
-        }
+        document.addEventListener('touchstart', (e) => { isAutoScrolling = false; touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }, { passive: false });
+        document.addEventListener('touchmove', (e) => { if (document.body.classList.contains('modal-open')) return; const diffX = touchStartX - e.touches[0].clientX; const diffY = touchStartY - e.touches[0].clientY; if (Math.abs(diffX) > Math.abs(diffY)) { e.preventDefault(); window.scrollBy(0, diffX * 2.5); touchStartX = e.touches[0].clientX; } }, { passive: false });
+        document.addEventListener('touchend', () => { setTimeout(() => { if(!document.body.classList.contains('modal-open')) isAutoScrolling = true; }, 1000); });
+        function raf(time) { lenis.raf(time); if (isAutoScrolling && !document.body.classList.contains('modal-open')) window.scrollBy(0, autoScrollSpeed); requestAnimationFrame(raf); }
         requestAnimationFrame(raf);
 
-        // === 6. 弹窗与全屏查看器 (Panzoom) ===
+        // 弹窗逻辑
         const modal = document.getElementById('detail-modal');
         const mImg = document.getElementById('modal-img');
         const mTitle = document.getElementById('m-title');
         const mDesc = document.getElementById('m-desc');
         const mViews = document.getElementById('m-views');
         const closeBtn = document.getElementById('close-btn');
-        
-        // Lightbox 元素
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
-        const lightboxClose = document.getElementById('lightbox-close');
-        const panzoomElem = document.getElementById('panzoom-container');
-        let panzoomInstance = null;
-
-        // 打开详情模态框
-        window.openModal = function(src, title, desc, views) {
-            mImg.src = src; mTitle.innerText = title; mDesc.innerText = desc; mViews.innerText = views;
-            modal.classList.add('active');
-            document.body.classList.add('modal-open');
-            lenis.stop();
-        };
-
-        // 关闭详情模态框
-        function closeModal() {
-            modal.classList.remove('active');
-            document.body.classList.remove('modal-open');
-            lenis.start();
-            setTimeout(() => { isAutoScrolling = true; }, 500);
-        }
-
-        // 打开全屏大图 (Lightbox)
-        function openLightbox() {
-            lightboxImg.src = mImg.src;
-            lightbox.classList.add('active');
-            
-            // 初始化 Panzoom
-            if (panzoomInstance) panzoomInstance.dispose();
-            panzoomInstance = Panzoom(lightboxImg, {
-                maxScale: 5,
-                contain: 'outside'
-            });
-            // 启用鼠标滚轮缩放
-            lightboxImg.parentElement.addEventListener('wheel', panzoomInstance.zoomWithWheel);
-        }
-
-        // 关闭全屏大图
-        function closeLightbox() {
-            lightbox.classList.remove('active');
-            if (panzoomInstance) {
-                panzoomInstance.reset();
-            }
-        }
-
-        // 事件绑定
+        window.openModal = function(src, title, desc, views) { mImg.src = src; mTitle.innerText = title; mDesc.innerText = desc; mViews.innerText = views; modal.classList.add('active'); document.body.classList.add('modal-open'); lenis.stop(); };
+        function closeModal() { modal.classList.remove('active'); document.body.classList.remove('modal-open'); lenis.start(); setTimeout(() => { isAutoScrolling = true; }, 500); }
         closeBtn.onclick = closeModal;
-        // 点击详情里的图片 -> 打开全屏大图
-        document.getElementById('modal-img-trigger').onclick = openLightbox;
-        // 关闭全屏大图
-        lightboxClose.onclick = closeLightbox;
-        
-        modal.onclick = (e) => { 
-            if(e.target === modal || e.target.classList.contains('modal-content-box')) closeModal(); 
-        };
-
+        modal.onclick = (e) => { if(e.target === modal || e.target.classList.contains('modal-content-box')) closeModal(); };
     </script>
 </body>
 </html>
