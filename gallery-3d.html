@@ -3,49 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>Yanxu | 晨光画境</title>
+    <title>Yanxu | 幻境国画</title>
     <style>
-        /* === 全局变量：晨光暖金配色 === */
+        /* === 全局变量 === */
         :root {
-            /* 玻璃背景改为偏暖的金色/白色 */
-            --glass-bg: rgba(255, 248, 240, 0.25);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            /* 阴影改为柔和的暖色 */
-            --glass-shadow: 0 8px 32px 0 rgba(219, 167, 103, 0.2);
-            --text-primary: #4a3b32; /* 深棕色文字，比纯黑柔和 */
-            --text-secondary: rgba(92, 75, 65, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
         }
 
         body { 
             margin: 0; overflow: hidden; 
-            background-color: #ffead5; /* 加载底色：暖杏色 */
+            background-color: #050505; /* 页面加载底色改为纯黑 */
             font-family: "Songti SC", "Noto Serif SC", serif; 
             color: var(--text-primary);
         }
 
-        /* === 氛围背景 (柔和晨光) === */
+        /* === 极光背景 (仅UI层) === */
         .aurora-bg {
             position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: -1;
-            /* 改为金、橙、暖白的渐变 */
-            background: linear-gradient(120deg, #ffecd2 0%, #fcb69f 100%);
-            opacity: 0.6;
+            background: radial-gradient(circle at 50% 50%, #2b1055, #7597de, #000000); /* 改暗一点，不刺眼 */
+            background-size: 200% 200%;
+            opacity: 0.4; /* 降低透明度，让它不抢眼 */
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         #crosshair {
-            position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
-            background: rgba(255, 250, 240, 0.9); border-radius: 50%;
-            box-shadow: 0 0 8px rgba(255, 200, 150, 0.8);
+            position: absolute; top: 50%; left: 50%; width: 6px; height: 6px;
+            background: rgba(255,255,255,0.9); border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
             transform: translate(-50%, -50%); pointer-events: none; z-index: 10;
             transition: transform 0.2s;
-            border: 1px solid rgba(200,150,100,0.3);
         }
-        #crosshair.active { transform: translate(-50%, -50%) scale(1.8); background: #ff8c00; }
+        #crosshair.active { transform: translate(-50%, -50%) scale(2); background: #ff0055; }
 
-        /* === 详情弹窗 (核心修改) === */
+        /* === 详情弹窗 === */
         #detail-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 245, 235, 0.7); /* 背景改为暖色半透明 */
-            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.85); /* 背景更黑，突出画作 */
+            backdrop-filter: blur(10px);
             z-index: 2000;
             flex-direction: column; align-items: center; justify-content: center;
             opacity: 0; transition: opacity 0.4s ease;
@@ -53,77 +56,58 @@
         #detail-modal.active { opacity: 1; }
         
         #detail-content-box {
-            position: relative; /* 为左下角定位做准备 */
             display: flex; flex-direction: column; align-items: center;
-            /* 修改点1：最大化容器 */
-            width: 95vw; height: 95vh; 
-            max-width: 1400px; /* 设置一个最大上限 */
-            padding: 20px; box-sizing: border-box;
-
+            max-width: 90%; max-height: 90vh;
+            padding: 30px;
             background: var(--glass-bg);
             box-shadow: var(--glass-shadow);
-            border-radius: 20px;
+            border-radius: 24px;
             border: 1px solid var(--glass-border);
             transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #detail-modal.active #detail-content-box { transform: scale(1); }
         
         #detail-img {
-            /* 修改点2：图片尽可能撑满，保留一点边距 */
-            height: auto; width: auto;
-            max-width: 100%; max-height: 82vh; /* 留出一点空间给文字 */
-            
-            box-shadow: 0 15px 40px rgba(139, 94, 60, 0.3); /* 暖色阴影 */
-            border-radius: 4px;
-            object-fit: contain;
+            max-height: 55vh; max-width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6); /* 强阴影 */
+            border: 4px solid rgba(255,255,255,0.1);
         }
         
         #detail-info {
-            width: 100%; margin-top: 15px; 
+            width: 100%; margin-top: 25px; 
             display: flex; flex-direction: column; align-items: center;
-            text-align: center;
-            flex-grow: 1; /* 让它占据剩余空间 */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-        #modal-title { font-size: 28px; margin-bottom: 5px; font-weight: bold; letter-spacing: 4px; color: var(--text-primary); }
-        #modal-subtitle { font-size: 14px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 10px; }
+        #modal-title { font-size: 36px; margin-bottom: 5px; font-weight: 300; letter-spacing: 6px; color: #fff; }
+        #modal-desc { font-size: 14px; color: var(--text-secondary); letter-spacing: 2px; font-family: sans-serif; margin-bottom: 15px; }
         
-        /* 修改点3：新增作品简介 */
-        #modal-long-desc {
-            font-size: 15px; color: var(--text-primary); line-height: 1.6;
-            max-width: 800px; margin-top: 5px;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; /* 最多显示两行，多了省略 */
-        }
-
-        /* 修改点4：浏览热度左下角小字 */
+        /* === 新增：浏览热度标签 === */
         .view-badge {
-            position: absolute; /* 绝对定位 */
-            bottom: 15px; left: 20px; /* 左下角 */
-            
             display: flex; align-items: center; gap: 6px;
-            /* 去掉背景框，只要纯净的图标和数字 */
-            padding: 0; border: none;
-            font-size: 13px; color: var(--text-secondary); font-family: sans-serif; font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 16px; border-radius: 20px;
+            font-size: 12px; color: #ccc; font-family: sans-serif;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        /* 眼睛图标颜色 */
-        .view-badge svg { fill: var(--text-secondary); width: 16px; height: 16px; opacity: 0.8; }
+        .view-badge svg { fill: #ccc; width: 14px; height: 14px; }
 
         #close-btn {
-            position: absolute; top: 15px; right: 20px; /*稍微调整位置 */
-            width: 40px; height: 40px; line-height: 38px; text-align: center;
-            border-radius: 50%; background: rgba(255,255,255,0.3);
+            position: absolute; top: -20px; right: -20px; 
+            width: 44px; height: 44px; line-height: 44px; text-align: center;
+            border-radius: 50%; background: rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.5);
-            color: var(--text-primary); font-size: 18px; cursor: pointer;
-            transition: all 0.3s; z-index: 10;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white; font-size: 18px; cursor: pointer;
+            transition: all 0.3s;
         }
-        #close-btn:hover { background: #fff; transform: rotate(90deg); box-shadow: 0 0 15px rgba(255, 140, 0, 0.3); }
+        #close-btn:hover { background: #ff4757; border-color: #ff4757; transform: rotate(90deg); }
 
         /* === 封面 === */
         #blocker {
             position: absolute; width: 100%; height: 100%;
-            background: rgba(255, 240, 225, 0.5); /* 暖色遮罩 */
+            background: rgba(5, 5, 10, 0.6); /* 深色遮罩 */
             backdrop-filter: blur(25px);
-            color: var(--text-primary); display: flex; flex-direction: column;
+            color: white; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             z-index: 999; cursor: pointer; transition: opacity 0.8s ease;
         }
@@ -131,39 +115,30 @@
         .cover-box {
             text-align: center; padding: 60px 80px;
             border-radius: 30px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 30px 80px rgba(219, 167, 103, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
         }
 
         .cover-title { 
             font-size: 72px; margin-bottom: 10px; letter-spacing: 12px; 
-            /* 晨光渐变字 */
-            background: linear-gradient(to right, #7a482d, #dba767);
+            background: linear-gradient(to right, #ffffff, #a18cd1);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .cover-subtitle { 
-            font-size: 18px; color: var(--text-secondary); letter-spacing: 8px; 
+            font-size: 18px; color: rgba(255,255,255,0.5); letter-spacing: 8px; 
             text-transform: uppercase; margin-bottom: 40px;
-            border-bottom: 1px solid rgba(139, 94, 60, 0.2); padding-bottom: 20px; display: inline-block;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; display: inline-block;
         }
         
         .btn { 
             padding: 16px 60px; border-radius: 50px;
-            background: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            color: var(--text-primary); font-size: 14px; letter-spacing: 4px;
-            cursor: pointer; transition: all 0.4s ease; font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white; font-size: 14px; letter-spacing: 4px;
+            cursor: pointer; transition: all 0.4s ease;
         }
-        .btn:hover { background: white; box-shadow: 0 0 30px rgba(255, 200, 150, 0.5); transform: translateY(-2px); }
-
-        /* 手机适配调整 */
-        @media (max-width: 600px) {
-            #detail-content-box { width: 100%; height: 100%; border-radius: 0; padding: 15px; }
-            #detail-img { max-height: 70vh; }
-            #modal-long-desc { -webkit-line-clamp: 3; font-size: 14px; }
-            .view-badge { bottom: 10px; left: 15px; }
-        }
+        .btn:hover { background: white; color: black; box-shadow: 0 0 30px rgba(255, 255, 255, 0.4); }
     </style>
 
     <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
@@ -186,13 +161,12 @@
             <img id="detail-img" src="" alt="Art">
             <div id="detail-info">
                 <div id="modal-title">标题</div>
-                <div id="modal-subtitle">副标题</div>
-                <p id="modal-long-desc">这里是作品的详细介绍文案，清晨的阳光洒在画作上，展现出细腻的笔触和丰富的色彩层次。后续可替换为真实内容。</p>
-            </div>
-            
-            <div class="view-badge">
-                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                <span id="view-count">1,234</span>
+                <div id="modal-desc">简介</div>
+                
+                <div class="view-badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    <span id="view-count">1,234</span> 人正在观赏
+                </div>
             </div>
         </div>
     </div>
@@ -200,7 +174,7 @@
     <div id="blocker">
         <div class="cover-box">
             <div class="cover-title">Yanxu</div>
-            <div class="cover-subtitle">Morning Light Gallery</div>
+            <div class="cover-subtitle">Infinite Art Gallery</div>
             <div class="btn">ENTER</div>
         </div>
     </div>
