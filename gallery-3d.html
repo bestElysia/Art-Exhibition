@@ -26,10 +26,9 @@
             background: #fdfbfb;
             color: var(--text-dark);
             overscroll-behavior: none; 
-            /* 关键：禁止原生滚动和缩放，完全由 JS 接管触摸 */
-            touch-action: none; 
+            /* 关键：允许垂直方向触摸(用于详情页滚动)，但禁止水平方向的默认行为 */
+            touch-action: pan-y; 
             user-select: none;
-            -webkit-user-select: none;
         }
 
         html.lenis, html.lenis body { height: auto; }
@@ -176,7 +175,8 @@
             transform: translateZ(0); 
             border-radius: 2px;
         }
-        .art-card:hover { transform: scale(1.02) translateY(-10px); box-shadow: 0 40px 80px rgba(166, 124, 82, 0.2); }
+        /* 移除卡片悬停位移，防止与自动播放产生视觉干扰 */
+        .art-card:hover { box-shadow: 0 40px 80px rgba(166, 124, 82, 0.2); }
 
         /* 视差容器 */
         .art-card-inner {
@@ -191,7 +191,7 @@
             width: 100%; height: 100%; object-fit: cover;
             transition: transform 0.8s ease; 
         }
-        .art-card:hover .art-img { transform: scale(1.08); }
+        .art-card:hover .art-img { transform: scale(1.05); }
 
         .art-preview-info {
             margin-top: 25px; padding-left: 5px; opacity: 1;
@@ -279,7 +279,7 @@
             flex-grow: 1; 
             overflow-y: auto; 
             padding-right: 10px;
-            /* 关键：允许弹窗内滚动 */
+            /* 允许详情内滚动，其他区域触摸无效 */
             touch-action: pan-y;
             overscroll-behavior: contain; 
             -webkit-overflow-scrolling: touch;
@@ -569,71 +569,32 @@
             }
         });
 
-        // === 6. 核心逻辑：触控反转与无限循环 ===
+        // === 6. 核心逻辑：自动循环与控制 ===
         let isGalleryStarted = false;
         let isUserScrolling = false;
-        let isTouching = false; // 新增：严格的触摸状态锁
         let autoScrollSpeed = isMobile ? 1.0 : 1.8; 
         let scrollTimeout;
 
         // 监听滚动以触发“进入画境”
         lenis.on('scroll', (e) => {
             if (!isGalleryStarted) {
+                // 向下滑动超过阈值启动
                 if (e.animatedScroll > 50) startGallery();
             } else {
+                // 检测是否在手动滚动（PC滚轮或移动端垂直滑动）
+                // 只要 scroll 事件触发，且速度不为 0 (近似)，就认为是用户在交互
+                // 但要排除自动播放引起的 scroll
+                // 这里简化处理：只要有 scroll 事件，重置倒计时
                 clearTimeout(scrollTimeout);
                 scrollTimeout = setTimeout(() => {
-                    // 只有当手指不在屏幕上时，才允许执行吸附
-                    if(!document.body.classList.contains('modal-open') && !isTouching) {
+                    if(!document.body.classList.contains('modal-open')) {
                         performSnap();
                     }
                 }, 200); 
             }
         });
 
-        // == 移动端触控逻辑 (严格冲突解决) ==
-        let touchStartX = 0;
-        let touchStartY = 0;
-        
-        window.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            
-            // 只要按下，立即锁定
-            isTouching = true;
-            isUserScrolling = true;
-            clearTimeout(scrollTimeout);
-        }, {passive: false});
-
-        window.addEventListener('touchmove', (e) => {
-            // 如果弹窗打开，放行（让 mDesc 处理），否则执行反转逻辑
-            if(document.body.classList.contains('modal-open')) return;
-            if(!isGalleryStarted) return;
-
-            const touchX = e.touches[0].clientX;
-            const touchY = e.touches[0].clientY;
-            const deltaX = touchX - touchStartX;
-            const deltaY = touchY - touchStartY;
-
-            // 水平滑动主导
-            if(Math.abs(deltaX) > Math.abs(deltaY)) {
-                e.preventDefault(); 
-                
-                // 修复逻辑：手指左滑 (deltaX < 0) -> 内容向左滚动 -> Scroll 增加
-                const sensitivity = 3.5;
-                lenis.scrollTo(lenis.scroll + (Math.abs(deltaX) * (deltaX > 0 ? -1 : 1) * sensitivity), { immediate: true });
-                
-                touchStartX = touchX;
-            }
-        }, {passive: false});
-
-        window.addEventListener('touchend', () => {
-            isTouching = false; 
-            // 这里不立即设置 isUserScrolling=false，而是交给 lenis.on('scroll') 里的 timeout 处理
-            // 这样可以等待惯性滑动结束
-        });
-
-        // === 新增：键盘控制 ===
+        // === 键盘控制 ===
         window.addEventListener('keydown', (e) => {
             if(document.body.classList.contains('modal-open')) return;
             if(!isGalleryStarted) return;
@@ -663,17 +624,15 @@
                 lenis.scrollTo(lenis.scroll % oneSetWidthPx, { immediate: true });
             }
 
-            // 自动播放：必须同时满足三个条件
-            // 1. 画廊已开始
-            // 2. 用户没有在操作 (isUserScrolling)
-            // 3. 手指没有在屏幕上 (isTouching) -- 修复冲突的关键
-            if (isGalleryStarted && !isUserScrolling && !isTouching && !document.body.classList.contains('modal-open')) {
+            // 自动播放条件：画廊已启动，用户未操作，未打开弹窗
+            if (isGalleryStarted && !isUserScrolling && !document.body.classList.contains('modal-open')) {
                 lenis.scrollTo(lenis.scroll + autoScrollSpeed, { immediate: true });
             }
             requestAnimationFrame(raf);
         }
         requestAnimationFrame(raf);
 
+        // 鼠标滚轮介入时暂停自动播放
         ['pointerdown', 'wheel'].forEach(evt => {
             window.addEventListener(evt, () => {
                 if(isGalleryStarted) {
