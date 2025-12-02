@@ -21,12 +21,15 @@
             margin: 0; padding: 0;
             width: 100%; 
             min-height: 100vh;
+            /* 苹果系统字体栈 */
             font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
             background: #fdfbfb;
             color: var(--text-dark);
             overscroll-behavior: none; 
-            touch-action: none; /* 接管触摸，防止 iOS 回弹和原生滚动冲突 */
+            /* 关键：全局禁止默认触摸，防止画廊拖拽时页面抖动，但会在弹窗文字区单独开启 */
+            touch-action: none; 
+            user-select: none; /* 防止长按选中文本干扰滑动 */
         }
 
         html.lenis, html.lenis body { height: auto; }
@@ -156,7 +159,7 @@
         .gallery-wrapper {
             display: flex; align-items: center; flex-wrap: nowrap;
             height: 100%; 
-            will-change: transform; 
+            will-change: transform; /* 性能优化 */
         }
 
         .gallery-item {
@@ -188,7 +191,7 @@
         .art-preview-title { font-size: 22px; font-weight: 600; margin: 0 0 6px 0; letter-spacing: 1px; color: var(--text-dark); }
         .art-preview-meta { font-size: 13px; color: var(--text-light); letter-spacing: 0.5px; font-weight: 400;}
         
-        /* === 7. 液态玻璃弹窗 (布局优化) === */
+        /* === 7. 液态玻璃弹窗 === */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.2); 
@@ -245,18 +248,17 @@
         .modal-text-inner {
             padding: 40px; height: 100%;
             display: flex; flex-direction: column; justify-content: center;
-            /* 确保内部容器不溢出 */
             overflow: hidden; 
         }
         .modal-title { font-size: 30px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: 1px; color: #1d1d1f; flex-shrink: 0; }
         
-        /* 修复字体大小统一 */
+        /* 元数据行 */
         .modal-meta-row {
             display: flex; align-items: center; gap: 10px;
             margin-bottom: 25px;
             letter-spacing: 0.5px;
-            color: #86868b; font-size: 14px; font-weight: 500;
-            flex-shrink: 0; /* 防止标题元数据被压缩 */
+            color: #86868b; font-size: 14px; font-weight: 500; /* 字体大小统一 */
+            flex-shrink: 0;
         }
         .modal-meta-divider { margin: 0 2px; opacity: 0.5; }
         .modal-views-text {
@@ -265,17 +267,19 @@
         }
         .modal-views-text svg { width: 15px; height: 15px; fill: #86868b; }
 
-        /* 修复长文本滚动条 */
+        /* 修复长文本滚动条 - 核心修复 */
         .modal-desc-scroll {
             font-size: 15px; line-height: 1.8; text-align: justify; color: #424245; 
-            /* 填满剩余空间，但至少有高度 */
             flex-grow: 1; 
             overflow-y: auto; 
-            padding-right: 10px; /* 给滚动条留位置 */
+            padding-right: 10px;
+            /* 关键：恢复触摸操作，否则手机上滚不动 */
+            touch-action: pan-y;
             overscroll-behavior: contain; 
             -webkit-overflow-scrolling: touch;
+            /* 允许用户选择文字 */
+            user-select: text;
         }
-        /* 显式滚动条样式 */
         .modal-desc-scroll::-webkit-scrollbar { width: 5px; background: rgba(0,0,0,0.03); }
         .modal-desc-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
         .modal-desc-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.4); }
@@ -373,13 +377,13 @@
 
     <div class="gallery-container">
         <div class="gallery-wrapper" id="gallery-wrapper">
-            </div>
+        </div>
     </div>
 
     <script>
-        // === 1. 数据配置 ===
+        // === 1. 数据配置 (英文翻译已重写) ===
         const longTextZh = "<br><br>在这幅作品中，不仅展示了技法的高超，更融入了画家对于晨光与生命的深刻哲思。画面中每一笔都经过深思熟虑，墨色的浓淡变化极其丰富，仿佛在诉说着一个关于时间与永恒的故事。<br><br>观者在驻足凝视时，往往能感受到一种超越视觉的心灵震撼。画中的留白并非空无一物，而是充满了气的流动，是此时无声胜有声的最佳写照。晨光熹微，不仅是自然景象，更是心境的映照。";
-        const longTextEn = "<br><br>This artwork incorporates the artist's profound philosophy on morning light and life. Every stroke is deliberate, with rich variations in ink tone, telling a story about time and eternity.<br><br>Viewers often feel a spiritual shock beyond vision. The negative space is not empty but full of the flow of Qi. The morning light reflects not just nature, but the state of mind.";
+        const longTextEn = "<br><br>This artwork is not merely a display of technique but a profound meditation on morning light and life. Every stroke is deliberate, with the nuanced variations of ink narrating a story of time and eternity.<br><br>As viewers gaze upon the piece, they often experience a spiritual resonance that transcends the visual. The negative space is far from empty; it pulses with the flow of Qi, perfectly embodying the silence that speaks louder than words. The first light of dawn reflects not just the natural world, but the inner landscape of the soul.";
 
         const uiText = {
             zh: { subtitle: "CHINESE PAINTING · 晨光画境", scrollHint: "滑动进入画境", langBtn: "EN" },
@@ -387,18 +391,18 @@
         };
 
         const originalArtworks = [
-            { id: 1, src: "assets/images/gallery/eg1.jpg", title: { zh: "晨光熹微 No.1", en: "First Light No.1" }, year: "2023 · 138x69cm", views: 1204, desc: { zh: "笔墨在晨光中苏醒，捕捉第一缕阳光穿透云雾的瞬间。画面运用了传统的积墨法与现代的光影构成，试图在混沌中寻找秩序与希望。" + longTextZh, en: "Ink awakens in the morning light. Using traditional ink layering with modern composition, it seeks order and hope amidst chaos." + longTextEn } },
-            { id: 2, src: "assets/images/gallery/eg2.jpg", title: { zh: "山间清风 No.2", en: "Mountain Breeze No.2" }, year: "2023 · 69x69cm", views: 892, desc: { zh: "以清透的淡彩与水墨交融，表现山间清风拂过林梢的动态。留白的处理旨在营造空灵幽远的意境，强调人与自然的和谐共生。" + longTextZh, en: "Clear watercolors blend with ink to express the breeze sweeping through treetops. The negative space creates an ethereal atmosphere." + longTextEn } },
-            { id: 3, src: "assets/images/gallery/eg3.jpg", title: { zh: "古木幽鸣 No.3", en: "Ancient Echoes No.3" }, year: "2022 · 180x97cm", views: 2431, desc: { zh: "聚焦于古树的肌理与沧桑感。通过焦墨与宿墨的对比，强化了古木盘根错节的生命力，仿佛能听到历史的回响。", en: "Focusing on the texture of ancient trees. The contrast between dry and accumulated ink highlights the intertwined vitality." } },
-            { id: 4, src: "assets/images/gallery/eg4.jpg", title: { zh: "溪山行旅 No.4", en: "Travels in Mountains No.4" }, year: "2023 · 138x34cm", views: 1567, desc: { zh: "向传统宋画致敬的长卷构图。在狭长的空间中安排了多重透视，引导观者视线随溪流而上，体验可行、可望、可游的境界。", en: "A tribute to Song Dynasty landscape painting. Multiple perspectives guide the viewer upstream, creating an immersive journey." } },
-            { id: 5, src: "assets/images/gallery/eg5.jpg", title: { zh: "云蒸霞蔚 No.5", en: "Rising Clouds No.5" }, year: "2024 · 90x90cm", views: 3210, desc: { zh: "大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。", en: "Bold use of Cinnabar and Mineral Blue depicts the magnificent sunrise. The collision of colors expresses majestic energy." } },
-            { id: 6, src: "assets/images/gallery/eg6.jpg", title: { zh: "静谧之境 No.6", en: "Serenity No.6" }, year: "2022 · 69x45cm", views: 780, desc: { zh: "极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。", en: "A minimalist piece. Most of the paper is left blank, pursuing the Zen expression of 'less is more'." } },
-            { id: 7, src: "assets/images/gallery/eg7.jpg", title: { zh: "雨后初晴 No.7", en: "After the Rain No.7" }, year: "2023 · 138x69cm", views: 1890, desc: { zh: "利用湿画法表现雨后山石润泽、空气清新的质感。画面中水气氤氲，仿佛能闻到泥土的芬芳。", en: "Using wet wash techniques to show the moist texture of rocks after rain. The misty atmosphere evokes the scent of earth." } },
-            { id: 8, src: "assets/images/gallery/eg8.jpg", title: { zh: "秋山红叶 No.8", en: "Autumn Hills No.8" }, year: "2023 · 120x120cm", views: 2105, desc: { zh: "满幅构图，以热烈的色彩表现秋山的丰富层次。墨色作为骨架，承载着斑斓的色彩。", en: "Full composition using warm colors to show the rich layers of autumn hills. Ink serves as the skeleton supporting vibrant colors." } },
-            { id: 9, src: "assets/images/gallery/eg9.jpg", title: { zh: "寒江独钓 No.9", en: "Solitary Fishing No.9" }, year: "2022 · 69x69cm", views: 1432, desc: { zh: "取材于传统诗意，现代构成诠释。画面极度空旷，孤舟蓑笠翁被提炼为一个符号，强调孤独与坚守的精神内核。", en: "Based on traditional poetry but reinterpreted. The vast emptiness isolates the boatman, symbolizing solitude and perseverance." } },
-            { id: 10, src: "assets/images/gallery/eg10.jpg", title: { zh: "墨韵流光 No.10", en: "Flowing Ink No.10" }, year: "2024 · 180x97cm", views: 998, desc: { zh: "探索水墨材料本身的流动性。泼墨与冲水让墨色在纸上自由流淌，形成不可复制的抽象肌理。", en: "Exploring ink fluidity. Splashing and washing create unreproducible abstract textures." } },
-            { id: 11, src: "assets/images/gallery/eg11.jpg", title: { zh: "春山烟雨 No.11", en: "Spring Mist No.11" }, year: "2023 · 138x69cm", views: 1678, desc: { zh: "温润的笔触描绘春山。淡绿与浅赭色相互晕染，营造出一种朦胧、诗意的梦境感。", en: "Depicting soft spring mountains. Light green and ochre blend to create a hazy, poetic dreamscape." } },
-            { id: 12, src: "assets/images/gallery/eg12.jpg", title: { zh: "岩壑藏幽 No.12", en: "Hidden Valley No.12" }, year: "2022 · 200x100cm", views: 2540, desc: { zh: "巨幅作品，强调山石的体量感。繁复皴法与深沉墨色构建了一个深邃、神秘的岩壑世界。", en: "A massive work emphasizing rock volume. Complex texturing builds a profound, mysterious valley world." } }
+            { id: 1, src: "assets/images/gallery/eg1.jpg", title: { zh: "晨光熹微 No.1", en: "First Light No.1" }, year: "2023 · 138x69cm", views: 1204, desc: { zh: "笔墨在晨光中苏醒，捕捉第一缕阳光穿透云雾的瞬间。画面运用了传统的积墨法与现代的光影构成，试图在混沌中寻找秩序与希望。" + longTextZh, en: "Ink and brush awaken amidst the morning light, capturing the fleeting moment sunlight pierces through the mist. Employing traditional ink layering with modern light composition, the piece seeks order and hope within chaos." + longTextEn } },
+            { id: 2, src: "assets/images/gallery/eg2.jpg", title: { zh: "山间清风 No.2", en: "Mountain Breeze No.2" }, year: "2023 · 69x69cm", views: 892, desc: { zh: "以清透的淡彩与水墨交融，表现山间清风拂过林梢的动态。留白的处理旨在营造空灵幽远的意境，强调人与自然的和谐共生。" + longTextZh, en: "Translucent watercolors blend with ink to express the dynamic breeze sweeping through treetops. The masterful use of negative space creates an ethereal atmosphere, emphasizing the harmonious coexistence of man and nature." + longTextEn } },
+            { id: 3, src: "assets/images/gallery/eg3.jpg", title: { zh: "古木幽鸣 No.3", en: "Ancient Echoes No.3" }, year: "2022 · 180x97cm", views: 2431, desc: { zh: "聚焦于古树的肌理与沧桑感。通过焦墨与宿墨的对比，强化了古木盘根错节的生命力，仿佛能听到历史的回响。", en: "Focusing on the texture and vicissitudes of ancient trees. The stark contrast between dry and accumulated ink highlights the intertwined vitality of the roots, echoing the sounds of history." } },
+            { id: 4, src: "assets/images/gallery/eg4.jpg", title: { zh: "溪山行旅 No.4", en: "Travels in Mountains No.4" }, year: "2023 · 138x34cm", views: 1567, desc: { zh: "向传统宋画致敬的长卷构图。在狭长的空间中安排了多重透视，引导观者视线随溪流而上，体验可行、可望、可游的境界。", en: "A tribute to Song Dynasty landscape painting in a long scroll format. Multiple perspectives guide the viewer upstream, creating an immersive journey through a landscape that is walkable, visible, and livable." } },
+            { id: 5, src: "assets/images/gallery/eg5.jpg", title: { zh: "云蒸霞蔚 No.5", en: "Rising Clouds No.5" }, year: "2024 · 90x90cm", views: 3210, desc: { zh: "大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。", en: "Bold use of Cinnabar and Mineral Blue depicts the magnificent spectacle of sunrise. The collision and fusion of colors express the majestic and ever-changing energy of nature." } },
+            { id: 6, src: "assets/images/gallery/eg6.jpg", title: { zh: "静谧之境 No.6", en: "Serenity No.6" }, year: "2022 · 69x45cm", views: 780, desc: { zh: "极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。", en: "A minimalist composition. Most of the paper remains untouched, with simple strokes outlining a single stone and grass in the corner, pursuing the Zen expression of 'less is more'." } },
+            { id: 7, src: "assets/images/gallery/eg7.jpg", title: { zh: "雨后初晴 No.7", en: "After the Rain No.7" }, year: "2023 · 138x69cm", views: 1890, desc: { zh: "利用湿画法表现雨后山石润泽、空气清新的质感。画面中水气氤氲，仿佛能闻到泥土的芬芳。", en: "Using wet wash techniques to render the moist texture of rocks and fresh air after rain. The misty atmosphere evokes the scent of damp earth." } },
+            { id: 8, src: "assets/images/gallery/eg8.jpg", title: { zh: "秋山红叶 No.8", en: "Autumn Hills No.8" }, year: "2023 · 120x120cm", views: 2105, desc: { zh: "满幅构图，以热烈的色彩表现秋山的丰富层次。墨色作为骨架，承载着斑斓的色彩。", en: "A full composition using warm, vibrant colors to depict the rich layers of autumn hills. Ink serves as the structural skeleton supporting the brilliant palette." } },
+            { id: 9, src: "assets/images/gallery/eg9.jpg", title: { zh: "寒江独钓 No.9", en: "Solitary Fishing No.9" }, year: "2022 · 69x69cm", views: 1432, desc: { zh: "取材于传统诗意，现代构成诠释。画面极度空旷，孤舟蓑笠翁被提炼为一个符号，强调孤独与坚守的精神内核。", en: "Based on traditional poetry but reinterpreted with modern composition. The vast emptiness isolates the boatman, transforming him into a symbol of solitude and perseverance." } },
+            { id: 10, src: "assets/images/gallery/eg10.jpg", title: { zh: "墨韵流光 No.10", en: "Flowing Ink No.10" }, year: "2024 · 180x97cm", views: 998, desc: { zh: "探索水墨材料本身的流动性。泼墨与冲水让墨色在纸上自由流淌，形成不可复制的抽象肌理。", en: "Exploring the fluidity of ink itself. Splashing and washing techniques allow the ink to flow freely on paper, creating unreproducible abstract textures." } },
+            { id: 11, src: "assets/images/gallery/eg11.jpg", title: { zh: "春山烟雨 No.11", en: "Spring Mist No.11" }, year: "2023 · 138x69cm", views: 1678, desc: { zh: "温润的笔触描绘春山。淡绿与浅赭色相互晕染，营造出一种朦胧、诗意的梦境感。", en: "Depicting the softness of spring mountains with gentle strokes. Light green and ochre blend to create a hazy, poetic dreamscape." } },
+            { id: 12, src: "assets/images/gallery/eg12.jpg", title: { zh: "岩壑藏幽 No.12", en: "Hidden Valley No.12" }, year: "2022 · 200x100cm", views: 2540, desc: { zh: "巨幅作品，强调山石的体量感。繁复皴法与深沉墨色构建了一个深邃、神秘的岩壑世界。", en: "A massive work emphasizing the volume and presence of rocks. Complex texturing and deep ink tones build a profound, mysterious valley world." } }
         ];
 
         // 克隆数组实现无限循环
@@ -504,16 +508,16 @@
 
         preloadImages();
 
-        // === 5. Lenis & ScrollTrigger ===
+        // === 5. Lenis & ScrollTrigger (参数调优) ===
         gsap.registerPlugin(ScrollTrigger);
 
         const lenis = new Lenis({
-            duration: 1.2,
+            duration: 1.0, // 稍微降低一点，更跟手
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             direction: 'vertical', 
             smooth: true,
             smoothTouch: true,
-            touchMultiplier: 3 
+            touchMultiplier: 2.5 
         });
 
         const scrollTween = gsap.to(wrapper, {
@@ -524,7 +528,7 @@
                 pin: true,
                 start: "top top",
                 end: () => `+=${wrapper.scrollWidth - window.innerWidth}`,
-                scrub: 0.5, 
+                scrub: 0.1, // 更低的延迟，提高响应速度
                 invalidateOnRefresh: true,
             }
         });
@@ -559,7 +563,7 @@
             }
         });
 
-        // == 移动端触控反转逻辑 (Fixed) ==
+        // == 移动端触控逻辑 (完美反转 & 阻止冒泡) ==
         let touchStartX = 0;
         let touchStartY = 0;
         
@@ -573,7 +577,9 @@
         }, {passive: false});
 
         window.addEventListener('touchmove', (e) => {
-            if(!isGalleryStarted || document.body.classList.contains('modal-open')) return;
+            // 如果弹窗打开，且手指在文本区域内，则不执行画廊滑动
+            if(document.body.classList.contains('modal-open')) return;
+            if(!isGalleryStarted) return;
 
             const touchX = e.touches[0].clientX;
             const touchY = e.touches[0].clientY;
@@ -584,11 +590,11 @@
             if(Math.abs(deltaX) > Math.abs(deltaY)) {
                 e.preventDefault(); 
                 
-                // 修复逻辑：手指左滑 (deltaX < 0) -> 内容左移 -> Lenis scroll 增加
-                // deltaX 是负数，我们需要增加 scroll，所以是 - deltaX
-                // sensitivity 控制灵敏度
+                // 修复逻辑：手指左滑 (deltaX < 0) -> 内容向左滚动(看到右边的图) -> Scroll 增加
+                // 之前是减，现在改为加，符合“拖动纸张”的物理直觉：
+                // 手指向左滑，意味着我想看右边的内容，所以 Scroll 应该增加
                 const sensitivity = 3.5;
-                lenis.scrollTo(lenis.scroll - (deltaX * sensitivity), { immediate: true });
+                lenis.scrollTo(lenis.scroll + (Math.abs(deltaX) * (deltaX > 0 ? -1 : 1) * sensitivity), { immediate: true });
                 
                 touchStartX = touchX;
             }
@@ -598,14 +604,10 @@
         function raf(time) {
             lenis.raf(time);
             
-            // 无限循环逻辑 (修复版)
-            // 当滚动超过第一组宽度时，跳回开头
+            // 无限循环逻辑
             if (lenis.scroll >= oneSetWidthPx) {
-                lenis.scrollTo(lenis.scroll - oneSetWidthPx, { immediate: true });
-            }
-            // 防止往回滚过头 (可选，增强体验)
-            if (lenis.scroll < 0) {
-                 lenis.scrollTo(lenis.scroll + oneSetWidthPx, { immediate: true });
+                // 瞬移回起点，注意使用 immediate: true 消除动画
+                lenis.scrollTo(lenis.scroll % oneSetWidthPx, { immediate: true });
             }
 
             // 自动播放
@@ -691,7 +693,10 @@
             
             modal.classList.add('active');
             document.body.classList.add('modal-open');
+            
+            // 确保弹窗打开时，底层画廊停止滚动
             lenis.stop();
+            isUserScrolling = true;
 
             const box = modal.querySelector('.modal-content-box');
             gsap.fromTo(box, 
@@ -716,6 +721,11 @@
         modal.onclick = (e) => {
             if(e.target === modal) closeModal();
         };
+
+        // 单独处理详情页滚动条的触摸事件，防止事件冒泡导致画廊滑动
+        mDesc.addEventListener('touchmove', (e) => {
+            e.stopPropagation();
+        }, { passive: false });
 
     </script>
 </body>
