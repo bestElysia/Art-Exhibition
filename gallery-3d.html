@@ -25,17 +25,16 @@
             -webkit-font-smoothing: antialiased;
             background: var(--bg-color);
             color: var(--text-dark);
-            
-            /* 核心修改：允许垂直滚动，但保持平滑 */
-            overflow-x: hidden; /* 禁止横向溢出 */
+            overflow-x: hidden;
+            /* 恢复垂直触摸，允许页面上下滑动 */
+            touch-action: pan-y; 
         }
 
-        /* Lenis 滚动容器 */
         html.lenis, html.lenis body { height: auto; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
 
-        /* === 2. 动态背景 (晨光) === */
+        /* === 2. 动态背景 === */
         .morning-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
@@ -54,7 +53,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* === 3. 顶部导航/控制区 === */
+        /* === 3. 顶部控制区 === */
         .controls-area {
             position: fixed; top: 25px; right: 25px; z-index: 800;
             display: flex; gap: 15px; align-items: center;
@@ -62,72 +61,77 @@
         .control-btn {
             width: 42px; height: 42px; border-radius: 50%;
             background: rgba(255, 255, 255, 0.6); 
-            border: 1px solid #fff;
+            border: 1px solid rgba(0,0,0,0.1);
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; transition: all 0.3s;
             backdrop-filter: blur(10px);
             font-size: 12px; font-weight: 600; color: var(--text-dark);
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
-        .control-btn:hover { background: #fff; transform: scale(1.1); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .music-btn svg { width: 18px; height: 18px; fill: var(--text-dark); }
-        .music-btn.playing { background: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,0.5); }
+        .music-btn.playing { background: #fff; box-shadow: 0 0 0 4px rgba(207, 168, 88, 0.3); }
 
-        /* === 4. Hero Banner (原画廊区域) === */
+        /* === 4. Hero Banner (修复重叠) === */
         .hero-section {
             position: relative;
             width: 100%; 
-            height: 85vh; /* 核心修改：高度调整 */
+            height: 90vh; /* 增加高度，给底部留空间 */
             overflow: hidden; 
             display: flex; align-items: center;
-            /* 底部渐变遮罩，让 Banner 自然过渡到内容 */
-            mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
         }
 
-        /* 标题层 */
+        /* 标题层：调低 z-index，让它在图片后面 */
         .hero-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 20;
+            pointer-events: none; 
+            z-index: 1; /* 关键修复：置于底层 */
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         .hero-title {
-            font-size: 8vw; font-weight: 800; letter-spacing: 8px; 
-            color: rgba(255,255,255,0.9); mix-blend-mode: overlay; /* 混合模式，让文字透出画作 */
-            text-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            font-size: 13vw; font-weight: 800; letter-spacing: 4px; margin-bottom: 20px;
+            color: rgba(0,0,0,0.03); /* 极淡的背景字，不抢眼 */
+            /* 或者使用混合模式 */
+            /* mix-blend-mode: overlay; color: rgba(0,0,0,0.5); */
         }
+        
         .hero-scroll-hint {
-            position: absolute; bottom: 40px; 
+            position: absolute; bottom: 30px; 
             display: flex; flex-direction: column; align-items: center; gap: 8px;
-            opacity: 0.8; animation: bounce 2s infinite;
+            opacity: 0.6; animation: bounce 2s infinite;
+            z-index: 20; /* 提示保持在最上层 */
         }
-        .hero-scroll-text { font-size: 12px; letter-spacing: 2px; color: var(--text-dark); font-weight: 500; }
-        .hero-arrow { width: 1px; height: 40px; background: var(--text-dark); opacity: 0.3; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+        .hero-scroll-text { font-size: 10px; letter-spacing: 2px; color: var(--text-light); }
+        .hero-arrow { width: 1px; height: 30px; background: var(--text-light); }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
-        /* 画廊轨道 */
+        /* 画廊轨道：调高 z-index，浮在文字上面 */
         .gallery-wrapper {
             display: flex; align-items: center; flex-wrap: nowrap;
-            height: 70%; /* 图片卡片占 Banner 高度的 70% */
+            height: 65%; 
             padding-left: 5vw;
             will-change: transform; 
+            position: relative; z-index: 10; /* 关键修复：置于上层 */
         }
 
         .gallery-item {
             display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
             height: 100%; flex-shrink: 0; position: relative;
-            margin-right: 4vw; width: 40vw; /* 桌面端宽度 */
+            margin-right: 4vw; 
+            width: 40vw; /* 默认桌面宽 */
         }
 
         .art-card {
             position: relative; width: 100%; height: 100%; 
             overflow: hidden; cursor: pointer;
-            background: #fff; padding: 10px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+            background: #fff; padding: 8px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
             transition: transform 0.3s ease;
             border-radius: 4px;
         }
-        .art-card:hover { transform: scale(1.02); box-shadow: 0 30px 60px rgba(0,0,0,0.12); }
+        /* 移除卡片悬停位移，防止视觉干扰 */
+        /* .art-card:hover { transform: scale(1.02); } */
 
         .art-card-inner {
             width: 115%; height: 100%; position: relative; left: -7.5%;
@@ -135,80 +139,90 @@
         }
         .art-img { width: 100%; height: 100%; object-fit: cover; }
 
-        .art-preview-info { margin-top: 15px; opacity: 0.8; }
-        .art-preview-title { font-size: 18px; font-weight: 600; margin: 0; color: var(--text-dark); }
-        .art-preview-meta { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+        /* 卡片下方信息 (修复丢失的数据) */
+        .art-preview-info { 
+            margin-top: 15px; width: 100%;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .art-preview-title { 
+            font-size: 18px; font-weight: 600; margin: 0; 
+            color: var(--text-dark); 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .art-preview-meta-row {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; color: var(--text-light); font-family: sans-serif;
+        }
+        .art-views {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .art-views svg { width: 12px; height: 12px; fill: var(--text-light); }
 
-        /* === 5. 主要内容区 (新增) === */
+        /* === 5. 主要内容区 === */
         .content-section {
             position: relative; z-index: 30;
-            padding: 100px 5vw;
-            max-width: 1400px; margin: 0 auto;
+            padding: 80px 5vw;
+            max-width: 1200px; margin: 0 auto;
         }
 
-        /* 通用标题 */
-        .section-header { margin-bottom: 80px; text-align: center; }
-        .section-title { font-size: 32px; font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; }
-        .section-subtitle { font-size: 14px; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
-        .section-line { width: 40px; height: 2px; background: var(--accent-gold); margin: 30px auto 0; }
+        .section-header { margin-bottom: 60px; text-align: center; }
+        .section-title { font-size: 28px; font-weight: 700; margin-bottom: 10px; letter-spacing: 2px; }
+        .section-subtitle { font-size: 12px; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
+        .section-line { width: 30px; height: 2px; background: var(--accent-gold); margin: 20px auto 0; }
 
-        /* 关于画家 */
         .about-text {
-            font-size: 18px; line-height: 2; color: #4a4a4a; text-align: center;
-            max-width: 800px; margin: 0 auto 100px; font-weight: 300;
+            font-size: 16px; line-height: 1.8; color: #555; text-align: center;
+            max-width: 700px; margin: 0 auto 80px; font-weight: 300;
         }
 
-        /* 交替布局板块 */
         .feature-block {
             display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 150px; gap: 80px;
+            margin-bottom: 120px; gap: 60px;
         }
         .feature-block.reverse { flex-direction: row-reverse; }
         
         .feature-text { flex: 1; }
-        .feature-text h3 { font-size: 28px; font-weight: 600; margin-bottom: 20px; color: var(--text-dark); }
-        .feature-text p { font-size: 16px; line-height: 1.8; color: var(--text-light); margin-bottom: 30px; text-align: justify; }
+        .feature-text h3 { font-size: 24px; font-weight: 600; margin-bottom: 15px; color: var(--text-dark); }
+        .feature-text p { font-size: 15px; line-height: 1.7; color: #666; margin-bottom: 25px; text-align: justify; }
         .read-more { 
-            display: inline-block; padding: 10px 30px; 
+            display: inline-block; padding: 8px 25px; 
             border: 1px solid var(--text-dark); border-radius: 30px;
-            font-size: 12px; letter-spacing: 1px; cursor: pointer;
+            font-size: 11px; letter-spacing: 1px; cursor: pointer;
             transition: all 0.3s;
         }
         .read-more:hover { background: var(--text-dark); color: #fff; }
 
         .feature-img-box {
-            flex: 1.2; height: 500px; position: relative;
-            overflow: hidden; cursor: pointer; border-radius: 8px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            flex: 1.2; height: 400px; position: relative;
+            overflow: hidden; cursor: pointer; border-radius: 6px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
         }
         .feature-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .feature-img-box:hover .feature-img { transform: scale(1.05); }
 
-        /* 展览列表 */
-        .exhibition-list { max-width: 900px; margin: 0 auto; }
+        .exhibition-list { max-width: 800px; margin: 0 auto; }
         .exhibition-item {
             display: flex; justify-content: space-between; align-items: baseline;
-            padding: 25px 0; border-bottom: 1px solid rgba(0,0,0,0.08);
+            padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
             transition: padding 0.3s; cursor: default;
         }
-        .exhibition-item:hover { padding-left: 20px; border-bottom-color: var(--accent-gold); }
-        .ex-year { font-weight: 700; color: var(--accent-gold); width: 80px; }
+        .exhibition-item:hover { padding-left: 15px; border-bottom-color: var(--accent-gold); }
+        .ex-year { font-weight: 700; color: var(--accent-gold); width: 60px; }
         .ex-name { flex: 1; font-weight: 500; color: var(--text-dark); }
-        .ex-loc { font-size: 13px; color: var(--text-light); }
+        .ex-loc { font-size: 12px; color: var(--text-light); }
 
-        /* === 6. Footer === */
         .site-footer {
-            text-align: center; padding: 60px 20px;
+            text-align: center; padding: 50px 20px;
             border-top: 1px solid rgba(0,0,0,0.05);
-            font-size: 12px; color: var(--text-light); letter-spacing: 1px;
+            font-size: 11px; color: var(--text-light); letter-spacing: 1px;
         }
 
-        /* === 7. 弹窗 UI (保持不变) === */
+        /* === 6. 弹窗 UI === */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.4); 
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            z-index: 999;
+            background: rgba(255, 255, 255, 0.6); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 9999; /* 确保在最上层 */
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
         }
@@ -216,10 +230,10 @@
 
         .modal-content-box {
             position: relative; width: 90vw; height: 85vh; max-width: 1400px;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.08);
+            border-radius: 16px;
+            box-shadow: 0 40px 90px rgba(0,0,0,0.1);
             display: flex; flex-direction: column;
             transform: scale(0.96); opacity: 0;
             overflow: hidden;
@@ -227,9 +241,9 @@
         
         .modal-img-wrapper {
             flex: 1; width: 100%; display: flex; justify-content: center; align-items: center;
-            padding: 40px; background: #f9f9f9;
+            padding: 30px; background: #fafafa;
         }
-        .modal-img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .modal-img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
 
         .modal-text {
             width: 100%; border-top: 1px solid rgba(0,0,0,0.05);
@@ -242,29 +256,44 @@
             .modal-text { height: 100%; width: 35%; border-top: none; max-height: 100%; }
         }
 
-        .modal-text-inner { padding: 50px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
-        .modal-title { font-size: 28px; font-weight: 700; margin: 0 0 10px 0; color: #1d1d1f; }
-        .modal-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 25px; color: #86868b; font-size: 13px; }
+        .modal-text-inner { padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+        .modal-title { font-size: 26px; font-weight: 700; margin: 0 0 8px 0; color: #1d1d1f; }
+        
+        .modal-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #86868b; font-size: 13px; }
+        .modal-meta-divider { opacity: 0.3; }
+        .modal-views-text { display: flex; align-items: center; gap: 4px; }
+        .modal-views-text svg { width: 14px; height: 14px; fill: #86868b; }
+
         .modal-desc-scroll {
-            font-size: 15px; line-height: 1.8; color: #424245; 
+            font-size: 15px; line-height: 1.8; color: #444; 
             flex-grow: 1; overflow-y: auto; padding-right: 10px;
             overscroll-behavior: contain;
         }
         .close-btn {
-            position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%;
-            background: #fff; box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%;
+            background: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 100;
+            font-size: 18px; color: #333;
         }
 
+        /* 移动端适配 */
         @media (max-width: 768px) {
-            .hero-section { height: 65vh; } /* 移动端 Banner 稍矮 */
+            .hero-section { height: 75vh; } /* 移动端高度 */
+            .gallery-wrapper { height: 60%; }
             .gallery-item { width: 80vw; margin-right: 5vw; }
-            .hero-title { font-size: 15vw; }
-            .feature-block { flex-direction: column; gap: 40px; margin-bottom: 100px; }
+            
+            /* 标题大小 */
+            .hero-title { font-size: 18vw; opacity: 0.05; }
+            
+            /* 移动端卡片文字大小 */
+            .art-preview-title { font-size: 20px; }
+            .art-preview-meta-row { font-size: 12px; }
+
+            .feature-block { flex-direction: column; gap: 30px; margin-bottom: 80px; }
             .feature-block.reverse { flex-direction: column; }
-            .feature-img-box { width: 100%; height: 300px; }
+            .feature-img-box { width: 100%; height: 280px; }
             .modal-content-box { width: 100%; height: 100%; border-radius: 0; }
-            .section-title { font-size: 26px; }
+            .section-title { font-size: 24px; }
         }
     </style>
 </head>
@@ -312,9 +341,9 @@
             <div class="feature-text">
                 <h3>静谧之境 · 创作手记</h3>
                 <p>在创作《静谧之境》系列时，我试图做减法。留白不仅仅是未被触碰的纸面，它是呼吸，是空间，是未尽之言。通过极简的构图，让墨色在纸上自然晕染，形成不可复制的肌理。</p>
-                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。')">VIEW ARTWORK</div>
+                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '180x97cm', '780', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。')">VIEW ARTWORK</div>
             </div>
-            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。')">
+            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '180x97cm', '780', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。')">
                 <img src="assets/images/gallery/eg6.jpg" class="feature-img" alt="Artwork">
             </div>
         </div>
@@ -323,9 +352,9 @@
             <div class="feature-text">
                 <h3>云蒸霞蔚 · 色彩的实验</h3>
                 <p>这是对传统水墨的一次大胆突破。朱砂与石青的碰撞，模拟日出时分云层中光影的剧烈变化。在这幅作品中，不仅能看到传统的皴法，更能感受到现代绘画对光影的直接描绘。</p>
-                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。')">VIEW ARTWORK</div>
+                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '180x97cm', '3210', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。')">VIEW ARTWORK</div>
             </div>
-            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。')">
+            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '180x97cm', '3210', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。')">
                 <img src="assets/images/gallery/eg5.jpg" class="feature-img" alt="Artwork">
             </div>
         </div>
@@ -370,6 +399,11 @@
                     <div class="modal-title" id="m-title"></div>
                     <div class="modal-meta-row">
                         <span id="m-year"></span>
+                        <span class="modal-meta-divider">|</span>
+                        <div class="modal-views-text">
+                            <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            <span id="m-views"></span>
+                        </div>
                     </div>
                     <div class="modal-desc-scroll" id="m-desc"></div>
                 </div>
@@ -378,19 +412,19 @@
     </div>
 
     <script>
-        // === 1. 数据 (Banner 自动播放用) ===
+        // === 数据 ===
         const bannerArtworks = [
-            { id: 1, src: "assets/images/gallery/eg1.jpg", title: "晨光熹微", year: "2023", desc: "笔墨在晨光中苏醒..." },
-            { id: 2, src: "assets/images/gallery/eg2.jpg", title: "山间清风", year: "2023", desc: "以清透的淡彩与水墨交融..." },
-            { id: 3, src: "assets/images/gallery/eg3.jpg", title: "古木幽鸣", year: "2022", desc: "聚焦于古树的肌理..." },
-            { id: 4, src: "assets/images/gallery/eg4.jpg", title: "溪山行旅", year: "2023", desc: "长卷构图..." },
-            { id: 5, src: "assets/images/gallery/eg5.jpg", title: "云蒸霞蔚", year: "2024", desc: "大胆运用朱砂..." },
-            { id: 6, src: "assets/images/gallery/eg6.jpg", title: "静谧之境", year: "2022", desc: "极简主义风格..." },
-            { id: 7, src: "assets/images/gallery/eg7.jpg", title: "雨后初晴", year: "2023", desc: "湿画法表现..." },
-            { id: 8, src: "assets/images/gallery/eg8.jpg", title: "秋山红叶", year: "2023", desc: "满幅构图..." },
+            { id: 1, src: "assets/images/gallery/eg1.jpg", title: "晨光熹微", year: "2023", size: "138x69cm", views: 1204, desc: "笔墨在晨光中苏醒，捕捉第一缕阳光穿透云雾的瞬间..." },
+            { id: 2, src: "assets/images/gallery/eg2.jpg", title: "山间清风", year: "2023", size: "69x69cm", views: 892, desc: "以清透的淡彩与水墨交融，表现山间清风拂过林梢的动态..." },
+            { id: 3, src: "assets/images/gallery/eg3.jpg", title: "古木幽鸣", year: "2022", size: "180x97cm", views: 2431, desc: "聚焦于古树的肌理与沧桑感..." },
+            { id: 4, src: "assets/images/gallery/eg4.jpg", title: "溪山行旅", year: "2023", size: "138x34cm", views: 1567, desc: "向传统宋画致敬的长卷构图..." },
+            { id: 5, src: "assets/images/gallery/eg5.jpg", title: "云蒸霞蔚", year: "2024", size: "90x90cm", views: 3210, desc: "大胆运用朱砂与石青色..." },
+            { id: 6, src: "assets/images/gallery/eg6.jpg", title: "静谧之境", year: "2022", size: "69x45cm", views: 780, desc: "极简主义风格..." },
+            { id: 7, src: "assets/images/gallery/eg7.jpg", title: "雨后初晴", year: "2023", size: "138x69cm", views: 1890, desc: "利用湿画法表现雨后..." },
+            { id: 8, src: "assets/images/gallery/eg8.jpg", title: "秋山红叶", year: "2023", size: "120x120cm", views: 2105, desc: "满幅构图，以热烈的色彩..." },
         ];
 
-        // 无限循环：克隆一份
+        // 克隆数据实现无限循环
         const displayArtworks = [...bannerArtworks, ...bannerArtworks];
 
         let currentLang = 'zh';
@@ -399,10 +433,9 @@
         function toggleLanguage() {
             currentLang = currentLang === 'zh' ? 'en' : 'zh';
             document.getElementById('lang-btn').innerText = uiText[currentLang].langBtn;
-            // 实际项目中这里需要更多的文字替换逻辑
         }
 
-        // === 2. 生成 Banner ===
+        // === DOM 生成 ===
         const wrapper = document.getElementById('gallery-wrapper');
         const isMobile = window.innerWidth < 768;
         const itemWidthVw = isMobile ? 80 : 40; 
@@ -414,6 +447,7 @@
             item.style.width = `${itemWidthVw}vw`;
             item.style.marginRight = `${itemMarginVw}vw`;
             
+            // 修复：卡片信息包含标题、年份、浏览量
             item.innerHTML = `
                 <div class="art-card" onclick="openBannerModal(${index})">
                     <div class="art-card-inner">
@@ -422,13 +456,19 @@
                 </div>
                 <div class="art-preview-info">
                     <h2 class="art-preview-title">${art.title}</h2>
-                    <p class="art-preview-meta">${art.year}</p>
+                    <div class="art-preview-meta-row">
+                        <span>${art.year}</span>
+                        <div class="art-views">
+                            <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            <span>${art.views}</span>
+                        </div>
+                    </div>
                 </div>
             `;
             wrapper.appendChild(item);
         });
 
-        // === 3. 动画逻辑 ===
+        // === 动画逻辑 ===
         gsap.registerPlugin(ScrollTrigger);
 
         const lenis = new Lenis({
@@ -444,71 +484,61 @@
         }
         requestAnimationFrame(raf);
 
-        // --- Banner 自动无限流动 (GSAP Tween) ---
-        // 计算总宽度 (vw)
+        // Banner 自动无限流动
         const singleItemVw = itemWidthVw + itemMarginVw;
         const totalVw = singleItemVw * displayArtworks.length;
         const oneSetVw = singleItemVw * bannerArtworks.length;
-        
-        // 设置 wrapper 总宽
         wrapper.style.width = `${totalVw}vw`;
 
-        // 核心：使用 GSAP 线性移动实现无限循环
         const loopTween = gsap.to(wrapper, {
-            x: `-${oneSetVw}vw`, // 移动一组的距离
-            duration: isMobile ? 25 : 40, // 速度控制
+            x: `-${oneSetVw}vw`, 
+            duration: isMobile ? 30 : 45, // 速度
             ease: "none",
-            repeat: -1, // 无限重复
+            repeat: -1, 
         });
 
-        // Banner 内部视差 (Parallax)
-        // 让内部图片和 wrapper 移动方向相反，产生视差
+        // 视差
         gsap.utils.toArray(".art-card-inner").forEach(inner => {
             gsap.to(inner, {
-                xPercent: 15, // 向右微移
+                xPercent: 15,
                 ease: "none",
                 repeat: -1,
-                duration: isMobile ? 25 : 40 // 时间必须与 loopTween 一致
+                duration: isMobile ? 30 : 45 
             });
         });
 
-        // 暂停/恢复逻辑
         const pauseBanner = () => { loopTween.pause(); };
         const resumeBanner = () => { if(!document.body.classList.contains('modal-open')) loopTween.play(); };
 
+        // 鼠标悬停暂停
         wrapper.addEventListener('mouseenter', pauseBanner);
         wrapper.addEventListener('mouseleave', resumeBanner);
-        // 触摸暂停 (移动端)
-        wrapper.addEventListener('touchstart', pauseBanner);
-        wrapper.addEventListener('touchend', resumeBanner);
 
-
-        // === 4. 弹窗逻辑 ===
+        // === 弹窗逻辑 ===
         const modal = document.getElementById('detail-modal');
         const mImg = document.getElementById('modal-img');
         const mTitle = document.getElementById('m-title');
         const mYear = document.getElementById('m-year');
+        const mViews = document.getElementById('m-views'); // 修复 ID
         const mDesc = document.getElementById('m-desc');
 
-        // 打开 Banner 图片
         window.openBannerModal = function(index) {
             const data = displayArtworks[index];
-            openStaticModal(data.src, data.title, data.year, data.desc);
+            openStaticModal(data.src, data.title, data.year, data.size, data.views, data.desc);
         }
 
-        // 打开任意图片 (通用方法)
-        window.openStaticModal = function(src, title, year, desc) {
+        window.openStaticModal = function(src, title, year, size, views, desc) {
             mImg.src = src;
             mTitle.innerText = title;
-            mYear.innerText = year;
+            mYear.innerText = `${year} · ${size || ''}`;
+            document.querySelector('#m-views').innerText = views || '1000+'; // 修复浏览量显示
             mDesc.innerHTML = desc;
             
             modal.classList.add('active');
             document.body.classList.add('modal-open');
-            lenis.stop(); // 停止页面滚动
-            loopTween.pause(); // 停止 Banner 播放
+            lenis.stop();
+            loopTween.pause();
 
-            // 进场动画
             const box = modal.querySelector('.modal-content-box');
             gsap.fromTo(box, 
                 { scale: 0.9, opacity: 0 },
@@ -531,19 +561,11 @@
         document.getElementById('close-modal-btn').onclick = closeModal;
         modal.onclick = (e) => { if(e.target === modal) closeModal(); };
 
-        // === 5. 音乐控制 ===
         const bgMusic = document.getElementById('bg-music');
         const musicBtn = document.getElementById('music-toggle');
         function toggleMusic() {
-            if (bgMusic.paused) {
-                bgMusic.play();
-                musicBtn.classList.remove('muted');
-                musicBtn.classList.add('playing');
-            } else {
-                bgMusic.pause();
-                musicBtn.classList.add('muted');
-                musicBtn.classList.remove('playing');
-            }
+            if (bgMusic.paused) { bgMusic.play(); musicBtn.classList.remove('muted'); musicBtn.classList.add('playing'); } 
+            else { bgMusic.pause(); musicBtn.classList.add('muted'); musicBtn.classList.remove('playing'); }
         }
 
     </script>
