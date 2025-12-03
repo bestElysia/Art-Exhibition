@@ -1,1 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yanxu | 晨光画境</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+
+    <link rel="stylesheet" href="assets/css/hamburger.css">
+
+    <style>
+        /* === 1. 基础设置 === */
+        :root {
+            --text-dark: #1d1d1f;       
+            --text-light: #86868b;      
+            --accent-gold: #cfa858;     
+            --bg-color: #fdfbfb;
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; 
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            background: var(--bg-color);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            touch-action: pan-y; 
+        }
+
+        html.lenis, html.lenis body { height: auto; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
+
+        /* === 2. 动态背景 === */
+        .morning-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: linear-gradient(-45deg, #fffcf5, #fff5e6, #e6f0ff, #fffcf5);
+            background-size: 400% 400%;
+            animation: gradientFlow 20s ease infinite;
+        }
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.3; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* === 3. 顶部控制区 === */
+        .controls-area {
+            position: fixed; top: 25px; right: 25px; z-index: 800;
+            display: flex; gap: 15px; align-items: center;
+        }
+        .control-btn {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6); 
+            border: 1px solid rgba(0,0,0,0.1);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            font-size: 12px; font-weight: 600; color: var(--text-dark);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .music-btn svg { width: 18px; height: 18px; fill: var(--text-dark); }
+        .music-btn.playing { background: #fff; box-shadow: 0 0 0 4px rgba(207, 168, 88, 0.3); }
+
+        /* === 4. Hero Banner === */
+        .hero-section {
+            position: relative;
+            width: 100%; 
+            height: 90vh; 
+            overflow: hidden; 
+            display: flex; align-items: center;
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+
+        .hero-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; 
+            z-index: 1; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .hero-title {
+            font-size: 13vw; font-weight: 800; letter-spacing: 4px; margin-bottom: 20px;
+            color: rgba(0,0,0,0.03); 
+        }
+        
+        .hero-scroll-hint {
+            position: absolute; bottom: 30px; 
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            opacity: 0.6; animation: bounce 2s infinite;
+            z-index: 20; 
+        }
+        .hero-scroll-text { font-size: 10px; letter-spacing: 2px; color: var(--text-light); }
+        .hero-arrow { width: 1px; height: 30px; background: var(--text-light); }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+
+        .gallery-wrapper {
+            display: flex; align-items: center; flex-wrap: nowrap;
+            height: 65%; 
+            padding-left: 5vw;
+            will-change: transform; 
+            position: relative; z-index: 10; 
+        }
+
+        .gallery-item {
+            display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+            height: 100%; flex-shrink: 0; position: relative;
+            margin-right: 4vw; 
+            width: 40vw; 
+        }
+
+        .art-card {
+            position: relative; width: 100%; height: 100%; 
+            overflow: hidden; cursor: pointer;
+            background: #fff; padding: 8px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .art-card-inner {
+            width: 115%; height: 100%; position: relative; left: -7.5%;
+            will-change: transform;
+        }
+        .art-img { width: 100%; height: 100%; object-fit: cover; }
+
+        .art-preview-info { 
+            margin-top: 15px; width: 100%;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .art-preview-title { 
+            font-size: 18px; font-weight: 600; margin: 0; 
+            color: var(--text-dark); 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .art-preview-meta-row {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; color: var(--text-light); font-family: sans-serif;
+        }
+        .art-views {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .art-views svg { width: 12px; height: 12px; fill: var(--text-light); }
+
+        /* === 5. 主要内容区 === */
+        .content-section {
+            position: relative; z-index: 30;
+            padding: 80px 5vw;
+            max-width: 1200px; margin: 0 auto;
+        }
+
+        .section-header { margin-bottom: 60px; text-align: center; }
+        .section-title { font-size: 28px; font-weight: 700; margin-bottom: 10px; letter-spacing: 2px; }
+        .section-subtitle { font-size: 12px; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
+        .section-line { width: 30px; height: 2px; background: var(--accent-gold); margin: 20px auto 0; }
+
+        .about-text {
+            font-size: 16px; line-height: 1.8; color: #555; text-align: center;
+            max-width: 700px; margin: 0 auto 80px; font-weight: 300;
+        }
+
+        .feature-block {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 120px; gap: 60px;
+        }
+        .feature-block.reverse { flex-direction: row-reverse; }
+        
+        .feature-text { flex: 1; }
+        .feature-text h3 { font-size: 24px; font-weight: 600; margin-bottom: 15px; color: var(--text-dark); }
+        .feature-text p { font-size: 15px; line-height: 1.7; color: #666; margin-bottom: 25px; text-align: justify; }
+        .read-more { 
+            display: inline-block; padding: 8px 25px; 
+            border: 1px solid var(--text-dark); border-radius: 30px;
+            font-size: 11px; letter-spacing: 1px; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .read-more:hover { background: var(--text-dark); color: #fff; }
+
+        .feature-img-box {
+            flex: 1.2; height: 400px; position: relative;
+            overflow: hidden; cursor: pointer; border-radius: 6px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        }
+        .feature-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .feature-img-box:hover .feature-img { transform: scale(1.05); }
+
+        .exhibition-list { max-width: 800px; margin: 0 auto; }
+        .exhibition-item {
+            display: flex; justify-content: space-between; align-items: baseline;
+            padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: padding 0.3s; cursor: default;
+        }
+        .exhibition-item:hover { padding-left: 15px; border-bottom-color: var(--accent-gold); }
+        .ex-year { font-weight: 700; color: var(--accent-gold); width: 60px; }
+        .ex-name { flex: 1; font-weight: 500; color: var(--text-dark); }
+        .ex-loc { font-size: 12px; color: var(--text-light); }
+
+        .site-footer {
+            text-align: center; padding: 50px 20px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            font-size: 11px; color: var(--text-light); letter-spacing: 1px;
+        }
+
+        /* === 6. 弹窗 UI === */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.6); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 9999; 
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .modal.active { opacity: 1; pointer-events: auto; }
+
+        .modal-content-box {
+            position: relative; width: 90vw; height: 85vh; max-width: 1400px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 40px 90px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+            transform: scale(0.96); opacity: 0;
+            overflow: hidden;
+        }
+        
+        .modal-img-wrapper {
+            flex: 1; width: 100%; display: flex; justify-content: center; align-items: center;
+            padding: 30px; background: #fafafa;
+        }
+        .modal-img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+
+        .modal-text {
+            width: 100%; border-top: 1px solid rgba(0,0,0,0.05);
+            background: #fff; max-height: 50%;
+        }
+
+        @media (min-width: 1024px) {
+            .modal-content-box { flex-direction: row; }
+            .modal-img-wrapper { height: 100%; width: 65%; border-right: 1px solid rgba(0,0,0,0.05); border-bottom: none; }
+            .modal-text { height: 100%; width: 35%; border-top: none; max-height: 100%; }
+        }
+
+        .modal-text-inner { padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+        .modal-title { font-size: 26px; font-weight: 700; margin: 0 0 8px 0; color: #1d1d1f; }
+        
+        .modal-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #86868b; font-size: 13px; }
+        .modal-meta-divider { opacity: 0.3; }
+        .modal-views-text { display: flex; align-items: center; gap: 4px; }
+        .modal-views-text svg { width: 14px; height: 14px; fill: #86868b; }
+
+        .modal-desc-scroll {
+            font-size: 15px; line-height: 1.8; color: #444; 
+            flex-grow: 1; overflow-y: auto; padding-right: 10px;
+            overscroll-behavior: contain;
+        }
+        .close-btn {
+            position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%;
+            background: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 100;
+            font-size: 18px; color: #333;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .hero-section { height: 75vh; } 
+            .gallery-wrapper { height: 60%; }
+            .gallery-item { width: 80vw; margin-right: 5vw; }
+            .hero-title { font-size: 18vw; opacity: 0.05; }
+            .art-preview-title { font-size: 20px; }
+            .art-preview-meta-row { font-size: 12px; }
+            .feature-block { flex-direction: column; gap: 30px; margin-bottom: 80px; }
+            .feature-block.reverse { flex-direction: column; }
+            .feature-img-box { width: 100%; height: 280px; }
+            .modal-content-box { width: 100%; height: 100%; border-radius: 0; }
+            .section-title { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="morning-bg"></div>
+    <div class="noise-overlay"></div>
+
+    <audio id="bg-music" loop preload="auto">
+        <source src="assets/music/还是会想你曼波.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="hamburger" class="hamburger">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+    </div>
+
+    <nav id="sideNav" class="side-nav">
+        <ul class="nav-list">
+            <li><a href="index.html" class="nav-item">主页</a></li>
+            <li><a href="#exhibitions-section" class="nav-item">画展</a></li>
+            <li><a href="papers.html" class="nav-item">论文</a></li>
+            <li><a href="essays.html" class="nav-item">随笔日记</a></li>
+            <li class="nav-divider"></li>
+            <li><a href="#" class="nav-item lang-switch" id="nav-lang-switch"><span>EN</span> <div class="lang-icon">文</div></a></li>
+        </ul>
+    </nav>
+
+    <div class="controls-area">
+        <div class="control-btn music-btn muted" id="music-toggle" onclick="toggleMusic()">
+            <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        </div>
+    </div>
+
+    <header class="hero-section">
+        <div class="hero-overlay">
+            <h1 class="hero-title">YANXU</h1>
+            <div class="hero-scroll-hint">
+                <span class="hero-scroll-text">SCROLL</span>
+                <div class="hero-arrow"></div>
+            </div>
+        </div>
+        <div class="gallery-wrapper" id="gallery-wrapper">
+            </div>
+    </header>
+
+    <main class="content-section">
+        
+        <div class="section-header">
+            <h2 class="section-title">ABOUT ARTIST</h2>
+            <p class="section-subtitle">严旭 · 水墨</p>
+            <div class="section-line"></div>
+        </div>
+        <p class="about-text">
+            严旭，当代水墨探索者。他的作品试图在传统笔墨与现代光影之间寻找平衡，捕捉自然界中转瞬即逝的晨光与暮色。
+            通过对水、墨、纸张微妙关系的极致把控，他构建了一个既真实又虚幻的“晨光画境”，邀请观者在喧嚣中寻找内心的宁静。
+        </p>
+
+        <div class="feature-block">
+            <div class="feature-text">
+                <h3>静谧之境 · 创作手记</h3>
+                <p>在创作《静谧之境》系列时，我试图做减法。留白不仅仅是未被触碰的纸面，它是呼吸，是空间，是未尽之言。通过极简的构图，让墨色在纸上自然晕染，形成不可复制的肌理。</p>
+                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '180x97cm', '780', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。')">VIEW ARTWORK</div>
+            </div>
+            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '180x97cm', '780', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。')">
+                <img src="assets/images/gallery/eg6.jpg" class="feature-img" alt="Artwork">
+            </div>
+        </div>
+
+        <div class="feature-block reverse">
+            <div class="feature-text">
+                <h3>云蒸霞蔚 · 色彩的实验</h3>
+                <p>这是对传统水墨的一次大胆突破。朱砂与石青的碰撞，模拟日出时分云层中光影的剧烈变化。在这幅作品中，不仅能看到传统的皴法，更能感受到现代绘画对光影的直接描绘。</p>
+                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '180x97cm', '3210', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。')">VIEW ARTWORK</div>
+            </div>
+            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '180x97cm', '3210', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。')">
+                <img src="assets/images/gallery/eg5.jpg" class="feature-img" alt="Artwork">
+            </div>
+        </div>
+
+        <div class="section-header" id="exhibitions-section">
+            <h2 class="section-title">EXHIBITIONS</h2>
+            <p class="section-subtitle">近期展览</p>
+            <div class="section-line"></div>
+        </div>
+        <div class="exhibition-list">
+            <div class="exhibition-item">
+                <div class="ex-year">2024</div>
+                <div class="ex-name">晨光与墨痕 - 严旭个展</div>
+                <div class="ex-loc">SHANGHAI, M50</div>
+            </div>
+            <div class="exhibition-item">
+                <div class="ex-year">2023</div>
+                <div class="ex-name">东方既白 - 当代水墨联展</div>
+                <div class="ex-loc">BEIJING, 798 ART ZONE</div>
+            </div>
+            <div class="exhibition-item">
+                <div class="ex-year">2022</div>
+                <div class="ex-name">静谧的声音</div>
+                <div class="ex-loc">TOKYO, GINZA</div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+        &copy; 2025 YANXU.US ALL RIGHTS RESERVED.
+    </footer>
+
+    <div class="modal" id="detail-modal">
+        <div class="modal-content-box">
+            <div class="close-btn" id="close-modal-btn">✕</div>
+            <div class="modal-img-wrapper">
+                <img src="" alt="" class="modal-img" id="modal-img">
+            </div>
+            <div class="modal-text">
+                <div class="modal-text-inner">
+                    <div class="modal-title" id="m-title"></div>
+                    <div class="modal-meta-row">
+                        <span id="m-year"></span>
+                        <span class="modal-meta-divider">|</span>
+                        <div class="modal-views-text">
+                            <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            <span id="m-views"></span>
+                        </div>
+                    </div>
+                    <div class="modal-desc-scroll" id="m-desc"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/hamburger.js"></script>
+
+    <script>
+        // === 数据 ===
+        const bannerArtworks = [
+            { id: 1, src: "assets/images/gallery/eg1.jpg", title: "晨光熹微", year: "2023", size: "138x69cm", views: 1204, desc: "笔墨在晨光中苏醒，捕捉第一缕阳光穿透云雾的瞬间..." },
+            { id: 2, src: "assets/images/gallery/eg2.jpg", title: "山间清风", year: "2023", size: "69x69cm", views: 892, desc: "以清透的淡彩与水墨交融，表现山间清风拂过林梢的动态..." },
+            { id: 3, src: "assets/images/gallery/eg3.jpg", title: "古木幽鸣", year: "2022", size: "180x97cm", views: 2431, desc: "聚焦于古树的肌理与沧桑感..." },
+            { id: 4, src: "assets/images/gallery/eg4.jpg", title: "溪山行旅", year: "2023", size: "138x34cm", views: 1567, desc: "向传统宋画致敬的长卷构图..." },
+            { id: 5, src: "assets/images/gallery/eg5.jpg", title: "云蒸霞蔚", year: "2024", size: "90x90cm", views: 3210, desc: "大胆运用朱砂与石青色..." },
+            { id: 6, src: "assets/images/gallery/eg6.jpg", title: "静谧之境", year: "2022", size: "69x45cm", views: 780, desc: "极简主义风格..." },
+            { id: 7, src: "assets/images/gallery/eg7.jpg", title: "雨后初晴", year: "2023", size: "138x69cm", views: 1890, desc: "利用湿画法表现雨后..." },
+            { id: 8, src: "assets/images/gallery/eg8.jpg", title: "秋山红叶", year: "2023", size: "120x120cm", views: 2105, desc: "满幅构图，以热烈的色彩..." },
+        ];
+
+        // 克隆数据实现无限循环
+        const displayArtworks = [...bannerArtworks, ...bannerArtworks];
+
+        let currentLang = 'zh';
+        
+        // 暴露给全局，以便 hamburger.js 调用
+        window.toggleLanguage = function() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            // 如果未来有内容翻译逻辑，写在这里
+            console.log("Language switched to: " + currentLang);
+        }
+
+        // === DOM 生成 ===
+        const wrapper = document.getElementById('gallery-wrapper');
+        const isMobile = window.innerWidth < 768;
+        const itemWidthVw = isMobile ? 80 : 40; 
+        const itemMarginVw = isMobile ? 5 : 4; 
+        
+        displayArtworks.forEach((art, index) => {
+            const item = document.createElement('div');
+            item.className = 'gallery-item';
+            item.style.width = `${itemWidthVw}vw`;
+            item.style.marginRight = `${itemMarginVw}vw`;
+            
+            item.innerHTML = `
+                <div class="art-card" onclick="openBannerModal(${index})">
+                    <div class="art-card-inner">
+                        <img src="${art.src}" class="art-img" alt="Artwork" decoding="async">
+                    </div>
+                </div>
+                <div class="art-preview-info">
+                    <h2 class="art-preview-title">${art.title}</h2>
+                    <div class="art-preview-meta-row">
+                        <span>${art.year}</span>
+                        <div class="art-views">
+                            <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            <span>${art.views}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            wrapper.appendChild(item);
+        });
+
+        // === 动画逻辑 ===
+        gsap.registerPlugin(ScrollTrigger);
+
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            direction: 'vertical', 
+            smooth: true,
+        });
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // Banner 自动无限流动
+        const singleItemVw = itemWidthVw + itemMarginVw;
+        const totalVw = singleItemVw * displayArtworks.length;
+        const oneSetVw = singleItemVw * bannerArtworks.length;
+        wrapper.style.width = `${totalVw}vw`;
+
+        const loopTween = gsap.to(wrapper, {
+            x: `-${oneSetVw}vw`, 
+            duration: isMobile ? 30 : 45, // 速度
+            ease: "none",
+            repeat: -1, 
+        });
+
+        // 视差
+        gsap.utils.toArray(".art-card-inner").forEach(inner => {
+            gsap.to(inner, {
+                xPercent: 15,
+                ease: "none",
+                repeat: -1,
+                duration: isMobile ? 30 : 45 
+            });
+        });
+
+        const pauseBanner = () => { loopTween.pause(); };
+        const resumeBanner = () => { if(!document.body.classList.contains('modal-open')) loopTween.play(); };
+
+        // 鼠标悬停暂停
+        wrapper.addEventListener('mouseenter', pauseBanner);
+        wrapper.addEventListener('mouseleave', resumeBanner);
+
+        // === 弹窗逻辑 ===
+        const modal = document.getElementById('detail-modal');
+        const mImg = document.getElementById('modal-img');
+        const mTitle = document.getElementById('m-title');
+        const mYear = document.getElementById('m-year');
+        const mViews = document.getElementById('m-views'); 
+        const mDesc = document.getElementById('m-desc');
+
+        window.openBannerModal = function(index) {
+            const data = displayArtworks[index];
+            openStaticModal(data.src, data.title, data.year, data.size, data.views, data.desc);
+        }
+
+        window.openStaticModal = function(src, title, year, size, views, desc) {
+            mImg.src = src;
+            mTitle.innerText = title;
+            mYear.innerText = `${year} · ${size || ''}`;
+            document.querySelector('#m-views').innerText = views || '1000+'; 
+            mDesc.innerHTML = desc;
+            
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+            lenis.stop();
+            loopTween.pause();
+
+            const box = modal.querySelector('.modal-content-box');
+            gsap.fromTo(box, 
+                { scale: 0.9, opacity: 0 },
+                { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.1)" }
+            );
+        }
+
+        function closeModal() {
+            const box = modal.querySelector('.modal-content-box');
+            gsap.to(box, {
+                scale: 0.95, opacity: 0, duration: 0.3, 
+                onComplete: () => {
+                    modal.classList.remove('active');
+                    document.body.classList.remove('modal-open');
+                    lenis.start();
+                    loopTween.play();
+                }
+            });
+        }
+        document.getElementById('close-modal-btn').onclick = closeModal;
+        modal.onclick = (e) => { if(e.target === modal) closeModal(); };
+
+        const bgMusic = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('music-toggle');
+        function toggleMusic() {
+            if (bgMusic.paused) { bgMusic.play(); musicBtn.classList.remove('muted'); musicBtn.classList.add('playing'); } 
+            else { bgMusic.pause(); musicBtn.classList.add('muted'); musicBtn.classList.remove('playing'); }
+        }
+
+    </script>
+</body>
+</html>
 
