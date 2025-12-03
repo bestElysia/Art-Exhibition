@@ -46,7 +46,7 @@
         .page-subtitle { font-size: 12px; letter-spacing: 3px; color: var(--text-light); text-transform: uppercase; margin-bottom: 10px; }
         .page-title { font-size: 32px; font-weight: 700; font-family: var(--serif-font); }
 
-        /* 随笔列表样式 (图文结合) */
+        /* 随笔列表样式 */
         .essay-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px; }
 
         .essay-card {
@@ -85,7 +85,6 @@
             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
         }
 
-        /* 移动端适配 */
         @media (max-width: 768px) {
             .essay-list { grid-template-columns: 1fr; }
         }
@@ -97,6 +96,7 @@
     <div class="noise-overlay"></div>
 
     <div id="hamburger" class="hamburger"><div class="line"></div><div class="line"></div><div class="line"></div></div>
+    
     <nav id="sideNav" class="side-nav">
         <ul class="nav-list">
             <li><a href="index.html" class="nav-item">主页</a></li>
@@ -116,7 +116,7 @@
 
         <div class="essay-list">
             
-            <a href="essays/essay-1.html" class="essay-card reveal-item">
+            <a href="essays/essay1.html" class="essay-card reveal-item">
                 <div class="card-img-box">
                     <img src="assets/images/gallery/eg1.jpg" alt="Cover" class="card-img">
                 </div>
@@ -124,7 +124,7 @@
                     <div class="card-meta">Dec 02, 2025 · Studio Log</div>
                     <h2 class="card-title">晨光里的墨与水：一次关于“空”的对话</h2>
                     <p class="card-excerpt">
-                        清晨五点，天色是一种近乎透明的黛蓝。我习惯在这个时候醒来，不是被闹钟唤醒，而是被光。
+                        清晨五点，天色是一种近乎透明的黛蓝。我习惯在这个时候醒来，不是被闹钟唤醒，而是被光...
                     </p>
                 </div>
             </a>
@@ -179,4 +179,3 @@
     </script>
 </body>
 </html>
-
