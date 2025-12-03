@@ -172,3 +172,48 @@ body {
 .goog-te-gadget {
     color: transparent !important;
 }
+
+/* ... (保留上面的导航栏样式不变) ... */
+
+/* =========================================
+   【加强版】隐藏 Google 翻译自带 UI
+   ========================================= */
+
+/* 1. 隐藏顶部的 iframe 横幅 */
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+
+/* 2. 强制重置 body 位置 (Google 会给 body 加 top: 40px) */
+body {
+    top: 0px !important;
+    position: static !important;
+}
+
+/* 3. 隐藏原来的下拉框容器 */
+#google_translate_element {
+    display: none !important;
+}
+
+/* 4. 隐藏鼠标悬停时的弹窗提示 */
+.goog-tooltip {
+    display: none !important;
+}
+.goog-tooltip:hover {
+    display: none !important;
+}
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 5. 隐藏移动端特定的横幅 */
+iframe.goog-te-banner-frame {
+    visibility: hidden !important;
+    display: none !important;
+}
+font font {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
