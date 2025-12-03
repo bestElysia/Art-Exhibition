@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yanxu | 论文1详情</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+
+    <link rel="stylesheet" href="../assets/css/hamburger.css">
+
+    <style>
+        /* === 继承基础设置 === */
+        :root {
+            --text-dark: #1d1d1f;       
+            --text-light: #86868b;      
+            --accent-gold: #cfa858;     
+            --bg-color: #fdfbfb;
+            --paper-font: "Songti SC", "Noto Serif SC", "SimSun", "Times New Roman", serif; /* 学术衬线体 */
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; 
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg-color);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html.lenis, html.lenis body { height: auto; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        
+        /* === 背景 === */
+        .morning-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: linear-gradient(-45deg, #fffcf5, #fff5e6, #e6f0ff, #fffcf5);
+            background-size: 400% 400%;
+            animation: gradientFlow 20s ease infinite;
+        }
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.3; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* === 页面布局 === */
+        .page-header {
+            padding-top: 120px;
+            padding-bottom: 60px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto 120px;
+            padding: 0 30px;
+            position: relative;
+        }
+
+        /* === 论文内容样式 === */
+        .paper-title {
+            font-family: var(--paper-font);
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 40px;
+            text-align: center;
+            color: #000;
+        }
+
+        .paper-meta {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 60px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: 30px;
+        }
+
+        .paper-content {
+            font-family: var(--paper-font);
+            font-size: 18px;
+            line-height: 1.9;
+            color: #2c2c2c;
+            text-align: justify;
+        }
+
+        .paper-content h2 {
+            font-family: -apple-system, sans-serif; /* 标题用无衬线体保持现代感 */
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 60px;
+            margin-bottom: 25px;
+            color: var(--text-dark);
+            border-left: 3px solid var(--accent-gold);
+            padding-left: 15px;
+        }
+
+        .paper-content p {
+            margin-bottom: 30px;
+        }
+
+        /* 首字下沉效果 */
+        .paper-content > p:first-of-type::first-letter {
+            font-size: 3.5em;
+            float: left;
+            line-height: 0.8;
+            margin-right: 10px;
+            color: var(--accent-gold);
+            font-family: "Times New Roman", serif;
+        }
+
+        /* 引用样式 */
+        blockquote {
+            margin: 40px 0;
+            padding: 20px 40px;
+            background: rgba(255,255,255,0.5);
+            border-left: 1px solid var(--accent-gold);
+            font-style: italic;
+            color: #555;
+        }
+
+        .site-footer {
+            text-align: center; padding: 50px 20px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            font-size: 11px; color: var(--text-light); letter-spacing: 1px;
+        }
+
+        /* 动画初始状态 */
+        .reveal-text {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .paper-title { font-size: 26px; }
+            .paper-content { font-size: 16px; line-height: 1.8; }
+            .article-container { padding: 0 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="morning-bg"></div>
+    <div class="noise-overlay"></div>
+
+    <div id="hamburger" class="hamburger">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+    </div>
+
+    <nav id="sideNav" class="side-nav">
+        <ul class="nav-list">
+            <li><a href="../index.html" class="nav-item">主页</a></li>
+            <li><a href="../index.html#exhibitions-section" class="nav-item">画展</a></li>
+            <li><a href="../papers.html" class="nav-item" style="color: var(--accent-gold);">论文</a></li> 
+            <li><a href="../essays.html" class="nav-item">随笔日记</a></li>
+            <li class="nav-divider"></li>
+            <li><a href="#" class="nav-item lang-switch" id="nav-lang-switch"><span>EN</span> <div class="lang-icon">文</div></a></li>
+        </ul>
+    </nav>
+
+    <header class="page-header">
+        <div class="page-title reveal-text">Academic Paper</div>
+    </header>
+
+    <article class="article-container">
+        
+        <h1 class="paper-title reveal-text">现代中国国画：传承与创新的交融</h1>
+        
+        <div class="paper-meta reveal-text">
+            <span>By Yanxu</span> &nbsp;|&nbsp; <span>Dec 2024</span> &nbsp;|&nbsp; <span>Art Theory</span>
+        </div>
+
+        <div class="paper-content">
+            
+            <section class="reveal-text">
+                <h2>引言</h2>
+                <p>
+                    现代中国国画，即当代水墨画，在20世纪以来经历了深刻的转型。它源于传统文人画的笔墨精神，却在全球化与现代化浪潮中融入新元素，体现了艺术的传承与创新。国画作为中国传统艺术的核心，以线条、墨色和意境为表达方式，当代艺术家通过实验性实践，推动其向现代主义转型。本文将围绕现代中国国画展开讨论，首先概述其历史背景，其次分析代表性艺术家及其作品，然后探讨技法创新与文化意义，最后总结其在当代艺术中的地位。通过对这些画作的剖析，我们可以看到中国水墨如何在保留本质的同时，回应时代变迁。
+                </p>
+            </section>
+
+            <section class="reveal-text">
+                <h2>历史背景</h2>
+                <p>
+                    现代中国国画的发展肇始于20世纪初的西学东渐。新文化运动时期，艺术家开始质疑传统文人画的封闭性，转向现实主义和现代表达。徐悲鸿等先驱坚持“改造国画”的理念，将西方造型技法融入水墨创作中，创作出如《愚公移山》等现实主义作品，这些画作强调人物塑造和情感抒发，标志着国画从古典向现代的转变。这一时期，国画界涌现出诸多创新尝试，如融合抽象元素和实验墨法，回应社会变革。
+                </p>
+                <p>
+                    进入改革开放时代，中国国画进一步多元化。艺术家们探索都市题材和抽象形式，传统山水、花鸟画被赋予现代寓意。例如，邱汉桥的《晨》以创新笔触描绘晨光下的山水，象征自然与人类和谐，体现了当代国画的探索精神。同时，海外华裔艺术家如曹俊将泼墨山水与抽象艺术融合，创造出“新宋式”风格，展现中西交融的魅力。这些发展反映了国画在全球化背景下的本土创新，从20世纪中叶的现实主义到当代的实验性表达，国画不断演变，成为文化自信的载体。
+                </p>
+                <p>
+                    此外，当代国画受影像技术和数字媒体影响，艺术家开始重构传统叙事。刘丹的赏石画作以精密墨层描绘，呼应文艺复兴古典风格，却又融入现代抽象，体现了国画的跨文化对话。总体而言，现代中国国画的历史背景是中西合璧、传统革新的过程，为当代艺术提供了丰富范例。
+                </p>
+            </section>
+
+            <section class="reveal-text">
+                <h2>代表性艺术家及其作品分析</h2>
+                <p>
+                    现代中国国画的成就体现在众多艺术家的创作中。范曾作为当代大家，以简笔泼墨人物画闻名，其代表作《老子出关》和《竹林七贤》将诗、书、画融合，强调“以诗为魂，以书为骨”的美学原则。这些作品线条流畅，墨色层叠，传达出哲理意境，体现了传统文人画的现代延续。
+                </p>
+                <p>
+                    白雪石被誉为现代中国画的创造者，其山水画如《长城》和《桂林山水》系列，融合传统笔墨与现代光影。长城蜿蜒于群山，墨色渲染出动态美，象征民族精神。这些画作平衡写意与写实，创新性地将山水与社会变迁结合，展现时代特征。同样，冯远的作品展“岁月之镜”系列，扎根传统文化却创新人物画表达，如描绘历史人物的群像，融入新时代视角，推动人物画的发展。
+                </p>
+                <p>
+                    刘国松（Liu Kuo-sung）作为现代墨师，重构传统与现代，其实验墨画如抽象山水系列，通过独特技法（如撕纸法）创造纹理，变换艺术实践。这些作品展现了墨色的无限可能，融合东方哲学与西方抽象。吕寿琨（Lui Shou Kwan）发起新水墨运动，其作品强调禅意抽象，如墨点与线条的组合，开拓了当代墨画的边界。
+                </p>
+                <p>
+                    朱祖国在花鸟画领域创新，其新写意作品抨击守旧，融入时代元素，如描绘花鸟的动态姿态，强调色彩与线条的融合。这些画作不甘平庸，体现了当代花鸟画的活力。此外，崔如琢的山水画以大气磅礴著称，韩美林的动物画生动传神，史国良的人物画注重现实刻画，这些艺术家共同丰富了现代国画的图谱。
+                </p>
+                <p>
+                    在海外影响下，曹俊的“新宋式”画作将泼墨与抽象结合，如山水抽象系列，展现别具一格的东方美。这些作品以国际化视野创新表达，吸引全球关注。总体，这些艺术家的作品从传统根基出发，注入现代精神，构成了当代国画的多彩景观。
+                </p>
+            </section>
+
+            <section class="reveal-text">
+                <h2>技法创新与文化意义</h2>
+                <p>
+                    现代中国国画的技法创新是其活力所在。传统以笔墨纸砚为基础，当代艺术家引入西方透视、光影和抽象构成。例如，刘国松的撕纸法和纤维技法，革新了墨画纹理，创造出空间深度与动态感。范曾的简笔泼墨则融合书法节奏，增强表现力。
+                </p>
+                <p>
+                    另一个创新是媒介融合。艺术家如曹俊将水墨与丙烯颜料结合，扩展色彩表达，推动国画从黑白向彩墨转型。白雪石的淡墨渲染技法，融入现代光影，增强视觉冲击。这些技法演变源于20世纪的观念转型，从现实主义到抽象实验。
+                </p>
+                <p>
+                    文化意义上，现代国画承载民族复兴使命。在社会变迁中，如冯远的作品反映时代精神，重构艺术史诗。当代人物画探索最新面貌，强调语言革新与时代对话。此外，在国际交流中，国画促进中外融合。刘丹的作品秉承中欧传统，却极具当代性。总体，现代国画的文化意义在于桥梁作用：连接过去与未来、本土与全球，推动中国艺术的国际影响力。
+                </p>
+            </section>
+
+            <section class="reveal-text">
+                <h2>结论</h2>
+                <p>
+                    现代中国国画通过传承与创新，实现从古典到当代的转型。艺术家如范曾、白雪石、刘国松等的贡献，不仅丰富了水墨语汇，还回应了时代需求。在全球化时代，国画将继续演进，或许融入数字技术，开启新篇章。本文基于相关文献，旨在鼓励进一步研究。
+                </p>
+            </section>
+
+        </div>
+    </article>
+
+    <footer class="site-footer">
+        &copy; 2025 YANXU.US ALL RIGHTS RESERVED.
+    </footer>
+
+    <script src="../assets/js/hamburger.js"></script>
+
+    <script>
+        // === 1. Lenis 平滑滚动初始化 ===
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            smooth: true,
+        });
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // === 2. GSAP 文字淡入动画 ===
+        gsap.registerPlugin(ScrollTrigger);
+
+        const textElements = document.querySelectorAll('.reveal-text');
+
+        textElements.forEach(el => {
+            gsap.to(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: "top 85%", // 当元素顶部到达视口85%位置时开始
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 1,
+                y: 0,
+                duration: 1,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+</html>
