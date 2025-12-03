@@ -206,3 +206,32 @@ body > .skiptranslate {
     font-size: 0 !important;
     height: 0 !important;
 }
+
+/* =========================================
+   UI 自动隐藏 (滚动/静止) 动画逻辑
+   ========================================= */
+
+/* 给汉堡按钮和音乐控制区添加平滑过渡 */
+/* 注意：这里同时控制了 .controls-area，只要页面引入了这个CSS文件就会生效 */
+.hamburger, .controls-area {
+    transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1), 
+                opacity 0.4s ease, 
+                background 0.3s, 
+                box-shadow 0.3s !important;
+    will-change: transform, opacity;
+}
+
+/* 隐藏状态：向上移动并透明 */
+.ui-hidden {
+    transform: translateY(-150%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* 强制覆盖：当侧边栏打开时，汉堡按钮必须显示，不能被隐藏 */
+.hamburger.active {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
