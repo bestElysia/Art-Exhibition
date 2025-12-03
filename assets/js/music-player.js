@@ -1,11 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // === 1. 播放列表配置 ===
     const playlist = [
-        {
-            title: "还是会想你曼波",
-            src: "assets/music/还是会想你曼波.mp3",
-            cover: "assets/music/还是会想你曼波.jpg"
-        },
+        
         {
             title: "Majo no Tabitabi Literature",
             src: "assets/music/Majo no Tabitabi OPLiterature Piano Cover.mp3",
