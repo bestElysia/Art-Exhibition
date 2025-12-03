@@ -274,6 +274,10 @@
     <div class="morning-bg"></div>
     <div class="noise-overlay"></div>
 
+    <audio id="bg-music" loop preload="auto">
+        <source src="assets/music/还是会想你曼波.mp3" type="audio/mpeg">
+    </audio>
+
     <div id="hamburger" class="hamburger">
         <div class="line"></div>
         <div class="line"></div>
@@ -548,7 +552,16 @@
         document.getElementById('close-modal-btn').onclick = closeModal;
         modal.onclick = (e) => { if(e.target === modal) closeModal(); };
 
-        /* 音乐控制不再需要在这里写函数，已经由 music-player.js 接管 */
+
+        // ============================================
+        document.querySelectorAll('a[href]').forEach(a => {
+            // 排除 href="#" (语言切换) 和锚点链接 (#exhibitions-section)
+            const href = a.getAttribute('href');
+            if (href && href !== '#' && !href.startsWith('#')) {
+                if (!a.target) a.setAttribute('target', '_blank');
+                a.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
 
     </script>
 </body>
