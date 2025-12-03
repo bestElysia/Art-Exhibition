@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
 
     <link rel="stylesheet" href="assets/css/hamburger.css">
+    <link rel="stylesheet" href="assets/css/music-player.css">
 
     <style>
         /* === 1. 基础设置 === */
@@ -53,24 +54,6 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
-        /* === 3. 顶部控制区 === */
-        .controls-area {
-            position: fixed; top: 25px; right: 25px; z-index: 800;
-            display: flex; gap: 15px; align-items: center;
-        }
-        .control-btn {
-            width: 42px; height: 42px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.6); 
-            border: 1px solid rgba(0,0,0,0.1);
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: all 0.3s;
-            backdrop-filter: blur(10px);
-            font-size: 12px; font-weight: 600; color: var(--text-dark);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        .music-btn svg { width: 18px; height: 18px; fill: var(--text-dark); }
-        .music-btn.playing { background: #fff; box-shadow: 0 0 0 4px rgba(207, 168, 88, 0.3); }
 
         /* === 4. Hero Banner === */
         .hero-section {
@@ -291,10 +274,6 @@
     <div class="morning-bg"></div>
     <div class="noise-overlay"></div>
 
-    <audio id="bg-music" loop preload="auto">
-        <source src="assets/music/还是会想你曼波.mp3" type="audio/mpeg">
-    </audio>
-
     <div id="hamburger" class="hamburger">
         <div class="line"></div>
         <div class="line"></div>
@@ -313,7 +292,7 @@
     </nav>
 
     <div class="controls-area">
-        <div class="control-btn music-btn muted" id="music-toggle" onclick="toggleMusic()">
+        <div class="control-btn music-btn muted" id="music-toggle">
             <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
         </div>
     </div>
@@ -417,6 +396,7 @@
     </div>
 
     <script src="assets/js/hamburger.js"></script>
+    <script src="assets/js/music-player.js"></script>
 
     <script>
         // === 数据 ===
@@ -568,14 +548,8 @@
         document.getElementById('close-modal-btn').onclick = closeModal;
         modal.onclick = (e) => { if(e.target === modal) closeModal(); };
 
-        const bgMusic = document.getElementById('bg-music');
-        const musicBtn = document.getElementById('music-toggle');
-        function toggleMusic() {
-            if (bgMusic.paused) { bgMusic.play(); musicBtn.classList.remove('muted'); musicBtn.classList.add('playing'); } 
-            else { bgMusic.pause(); musicBtn.classList.add('muted'); musicBtn.classList.remove('playing'); }
-        }
+        /* 音乐控制不再需要在这里写函数，已经由 music-player.js 接管 */
 
     </script>
 </body>
 </html>
-
