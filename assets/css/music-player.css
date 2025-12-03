@@ -1,0 +1,63 @@
+/* === 音乐播放器样式 === */
+
+/* 顶部控制区容器 */
+.controls-area {
+    position: fixed; 
+    top: 25px; 
+    right: 25px; 
+    z-index: 800;
+    display: flex; 
+    gap: 15px; 
+    align-items: center;
+}
+
+/* 按钮通用样式 */
+.control-btn {
+    width: 42px; 
+    height: 42px; 
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6); 
+    border: 1px solid rgba(0,0,0,0.1);
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    cursor: pointer; 
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    font-size: 12px; 
+    font-weight: 600; 
+    color: var(--text-dark);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* 音乐按钮图标 */
+.music-btn svg { 
+    width: 18px; 
+    height: 18px; 
+    fill: var(--text-dark); 
+    transition: all 0.3s;
+}
+
+/* 播放状态：按钮发光 & 旋转动画 */
+.music-btn.playing { 
+    background: #fff; 
+    box-shadow: 0 0 0 4px rgba(207, 168, 88, 0.3); /* 金色光环 */
+}
+
+/* 简单的旋转动画，表示正在播放 */
+.music-btn.playing svg {
+    animation: spinMusic 4s linear infinite;
+}
+
+@keyframes spinMusic {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 移动端适配 (如果需要微调位置) */
+@media (max-width: 768px) {
+    .controls-area {
+        top: 20px;
+        right: 20px;
+    }
+}
