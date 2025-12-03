@@ -1,7 +1,6 @@
 /* === Yanxu 风格导航栏样式 === */
 
 :root {
-    /* 继承主页面的变量，保持一致性 */
     --nav-text: #1d1d1f;
     --nav-sub-text: #86868b;
     --nav-accent: #cfa858;
@@ -14,7 +13,7 @@
 /* === 汉堡按钮 === */
 .hamburger {
     position: fixed;
-    left: 25px; /* 与右侧控制区对称 */
+    left: 25px;
     top: 25px;
     width: 42px;
     height: 42px;
@@ -28,7 +27,7 @@
     justify-content: center;
     gap: 4px;
     cursor: pointer;
-    z-index: 900; /* 略高于普通内容，但低于全屏弹窗 */
+    z-index: 900;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 4px 10px rgba(0,0,0,0.03);
 }
@@ -39,7 +38,6 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
-/* 按钮内的线条 - 极简风格 */
 .hamburger .line {
     width: 16px;
     height: 1.5px;
@@ -47,32 +45,23 @@
     transition: all 0.3s ease;
 }
 
-/* 激活状态的汉堡按钮变化 */
-.hamburger.active .line:nth-child(1) {
-    transform: translateY(5.5px) rotate(45deg);
-}
-.hamburger.active .line:nth-child(2) {
-    opacity: 0;
-}
-.hamburger.active .line:nth-child(3) {
-    transform: translateY(-5.5px) rotate(-45deg);
-}
+.hamburger.active .line:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+.hamburger.active .line:nth-child(2) { opacity: 0; }
+.hamburger.active .line:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
 
 /* === 侧边导航容器 === */
 .side-nav {
     position: fixed;
     left: 25px;
-    top: 80px; /* 在汉堡按钮下方 */
+    top: 80px;
     width: 200px;
     padding: 20px 10px;
-    
     background: var(--nav-bg);
     border: 1px solid var(--nav-border);
     border-radius: 12px;
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     box-shadow: var(--nav-shadow);
-    
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px) scale(0.98);
@@ -112,21 +101,18 @@
     overflow: hidden;
 }
 
-/* 悬停效果：雅致的金色微光 */
 .nav-item:hover {
-    background: rgba(207, 168, 88, 0.08); /* accent-gold 的极淡背景 */
+    background: rgba(207, 168, 88, 0.08);
     color: var(--nav-accent);
-    padding-left: 25px; /* 轻微位移 */
+    padding-left: 25px;
 }
 
-/* 分割线 */
 .nav-divider {
     height: 1px;
     background: rgba(0,0,0,0.05);
     margin: 10px 15px;
 }
 
-/* 语言切换按钮特殊样式 */
 .nav-item.lang-switch {
     font-family: -apple-system, sans-serif;
     color: var(--nav-sub-text);
@@ -146,11 +132,43 @@
     border-radius: 4px;
 }
 
-/* === 移动端适配 === */
 @media (max-width: 768px) {
     .side-nav {
-        width: calc(100% - 50px); /* 移动端几乎全宽 */
+        width: calc(100% - 50px);
         left: 25px;
     }
 }
 
+/* =========================================
+   【新增】隐藏 Google 翻译自带的丑陋 UI
+   ========================================= */
+/* 隐藏顶部横幅 */
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+body {
+    top: 0px !important;
+}
+/* 隐藏原来的 Google 下拉框 */
+#google_translate_element {
+    display: none !important;
+}
+/* 隐藏鼠标悬停时的弹窗提示 */
+.goog-tooltip {
+    display: none !important;
+}
+.goog-tooltip:hover {
+    display: none !important;
+}
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+/* 隐藏 Google Logo */
+.goog-logo-link {
+    display: none !important;
+}
+.goog-te-gadget {
+    color: transparent !important;
+}
