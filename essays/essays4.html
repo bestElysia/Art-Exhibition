@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>晨光里的墨与水 | Yanxu</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    
+    <link rel="stylesheet" href="../assets/css/hamburger.css">
+
+    <style>
+        :root {
+            --text-dark: #1d1d1f;       
+            --text-light: #86868b;      
+            --accent-gold: #cfa858;     
+            --bg-color: #fdfbfb;
+            --paper-font: "Songti SC", "Noto Serif SC", "SimSun", serif;
+        }
+
+        html, body {
+            margin: 0; padding: 0; width: 100%; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-color); color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .morning-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: linear-gradient(-45deg, #fffcf5, #fff5e6, #e6f0ff, #fffcf5);
+            background-size: 400% 400%; animation: gradientFlow 20s ease infinite;
+        }
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.3; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+        }
+        @keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* 文章容器 */
+        .article-container { max-width: 720px; margin: 0 auto 120px; padding: 120px 25px 0; }
+        
+        .essay-header { text-align: center; margin-bottom: 60px; }
+        .essay-date { font-size: 13px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; }
+        .essay-title { font-family: var(--paper-font); font-size: 34px; font-weight: 700; line-height: 1.3; color: #111; }
+
+        .essay-body {
+            font-family: var(--paper-font); font-size: 18px; line-height: 2; color: #333;
+            text-align: justify;
+        }
+        .essay-body p { margin-bottom: 30px; }
+        
+        /* 图片样式 */
+        .essay-image-box {
+            margin: 50px -40px 50px; /* 让图片比文字宽一点 */
+            text-align: center;
+        }
+        .essay-img {
+            max-width: 100%; height: auto; border-radius: 4px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+            transition: transform 0.5s ease;
+        }
+        .essay-img:hover { transform: scale(1.02); }
+        .img-caption {
+            font-family: -apple-system, sans-serif;
+            font-size: 12px; color: var(--text-light); margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        .site-footer { text-align: center; padding: 50px 20px; border-top: 1px solid rgba(0,0,0,0.05); font-size: 11px; color: var(--text-light); letter-spacing: 1px; }
+        
+        .reveal-text { opacity: 0; transform: translateY(20px); }
+
+        @media (max-width: 768px) {
+            .essay-image-box { margin: 40px 0; }
+            .essay-title { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="morning-bg"></div>
+    <div class="noise-overlay"></div>
+
+    <div id="hamburger" class="hamburger"><div class="line"></div><div class="line"></div><div class="line"></div></div>
+    
+    <nav id="sideNav" class="side-nav">
+        <ul class="nav-list">
+            <li><a href="../index.html" class="nav-item">主页</a></li>
+            <li><a href="../index.html#exhibitions-section" class="nav-item">画展</a></li>
+            <li><a href="../papers.html" class="nav-item">论文</a></li>
+            <li><a href="../essays.html" class="nav-item" style="color: var(--accent-gold);">随笔日记</a></li>
+            <li class="nav-divider"></li>
+            <li><a href="#" class="nav-item lang-switch"><span>EN</span> <div class="lang-icon">文</div></a></li>
+        </ul>
+    </nav>
+
+    <article class="article-container">
+        
+        <header class="essay-header reveal-text">
+            <div class="essay-date">December 02, 2025 · Studio Log</div>
+            <h1 class="essay-title">晨光里的墨与水：一次关于“空”的对话</h1>
+        </header>
+
+        <div class="essay-body">
+            
+            <p class="reveal-text">
+                清晨五点，天色是一种近乎透明的黛蓝。我习惯在这个时候醒来，不是被闹钟唤醒，而是被光。在上海这座喧嚣的城市里，只有此刻，世界是属于我一个人的安静。推开画室的门，空气里弥漫着陈年宣纸和宿墨混合的特殊香气，这是一种能瞬间让人心跳平缓下来的味道。今天不想画宏大的山水，也不想去思考那些关于“传统与当代”的宏大命题。我只想研磨。研墨是一件极度需要耐心的事情，水滴入砚台，墨锭缓缓转动。古人说“磨墨如病”，意指要慢，要轻，像生病的人那样无力却专注。随着手腕的转动，墨香一点点散开，思绪也跟着散开。
+            </p>
+            <p class="reveal-text">
+                提起笔，饱蘸浓墨，却迟迟不敢落下。中国画最讲究的不是“画了什么”，而是“没画什么”。留白，是我们在画布上给光留出的通道，给风留出的缝隙，也是给观者留出的呼吸空间。最近我一直在思考“虚实”的关系。如果把墨比作实体，那么白纸就是虚空。但在这虚空里，藏着比墨更丰富的内容。
+            </p>
+
+            <div class="essay-image-box reveal-text">
+                <img src="../assets/images/gallery/eg1.jpg" alt="晨光中的笔触" class="essay-img">
+                <div class="img-caption">图1：晨光初透，笔尖触碰宣纸的瞬间</div>
+            </div>
+
+            <p class="reveal-text">
+                第一笔终于落下，侧锋横扫。墨色在生宣上迅速晕开，那种不可控的渗化过程，每一次看都觉得惊心动魄。水分子拖着碳颗粒在纸纤维间奔跑，像极了清晨的第一缕阳光穿透云层。我试图控制它，又试图放纵它。这就是水墨的魅力，你永远无法完全主宰它，你只能与它共舞。这种不确定性，正是艺术创作中最迷人的地方。你预设了一个结果，但墨与水会给你另一个答案，往往比你想象的更精彩。
+            </p>
+            <p class="reveal-text">
+                画到中途，觉得画面太“满”了。这是现代人的通病，我们太害怕空白，总想用物质、信息、声音去填满生活的每一个角落。在绘画中，这种恐惧表现为不断的堆砌笔触，生怕别人看不懂，生怕画面显得单薄。但在画里，满则是死。于是我停下来，深呼吸，洗笔，换清水。用极淡的宿墨在浓墨旁轻轻破开，原本死板的黑色瞬间有了呼吸，有了层次。这一笔淡墨，就像是给紧绷的画面打开了一扇窗。
+            </p>
+
+            <div class="essay-image-box reveal-text">
+                <img src="../assets/images/gallery/eg2.jpg" alt="墨色的晕染" class="essay-img">
+                <div class="img-caption">图2：淡彩与水墨的交融，模拟山间清风</div>
+            </div>
+
+            <p class="reveal-text">
+                这时候，窗外的阳光正好洒在画案上，金色的光尘在空气中飞舞。我看着画中那片刻意留出的空白，突然明白，那不是空无一物，那是“气”，是万物的源头。我们常说“气韵生动”，这个“气”，往往不在笔墨里，而在笔墨之外。它是山间的风，是林中的雾，是观者心中的想象。如果没有这片空白，笔墨就失去了依附，变得沉重而压抑。
+            </p>
+            <p class="reveal-text">
+                接着，我尝试用干笔皴擦。枯笔在纸上摩擦出沙沙的声响，留下一道道苍劲的痕迹，那是岁月的纹理。这种干与湿的对比，就像生活中的起伏。我们既需要湿润的滋养，也需要枯涩的历练。只有经历了干枯，才能懂得温润的可贵。每一笔皴擦，都是与古树的一次对话，感受它皮层下的生命力。
+            </p>
+
+            <div class="essay-image-box reveal-text">
+                <img src="../assets/images/gallery/eg3.jpg" alt="古木肌理" class="essay-img">
+                <div class="img-caption">图3：干笔皴擦出的古木肌理，沧桑而有力</div>
+            </div>
+
+            <p class="reveal-text">
+                放下笔，已是日上三竿。画室外传来了城市的车流声，新的一天开始了。但这幅画里的晨光，被我定格在了纸上。它不再随着时间的流逝而消失，而是成为了永恒的存在。
+            </p>
+            <p class="reveal-text">
+                或许，画画本身就是一场修行。我们在墨与水的交融中，不仅是在描绘山川草木，更是在梳理自己内心的秩序。在这方寸之间，我找到了对抗外界喧嚣的堡垒。不需要掌声，不需要关注，只需要这一刻的专注与宁静。看着未干的墨迹，我感到一种深深的满足。这就是我的一天，从晨光开始，在墨香中延续。这一刻的宁静，足矣。
+            </p>
+        </div>
+
+    </article>
+
+    <footer class="site-footer">
+        &copy; 2025 YANXU.US ALL RIGHTS RESERVED.
+    </footer>
+
+    <script src="../assets/js/hamburger.js"></script>
+
+    <script>
+        const lenis = new Lenis({ duration: 1.2, smooth: true });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        gsap.registerPlugin(ScrollTrigger);
+
+        const textElements = document.querySelectorAll('.reveal-text');
+        textElements.forEach(el => {
+            gsap.to(el, {
+                scrollTrigger: {
+                    trigger: el, start: "top 85%", toggleActions: "play none none reverse"
+                },
+                opacity: 1, y: 0, duration: 1, ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+</html>
