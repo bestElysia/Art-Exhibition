@@ -19,7 +19,7 @@
             --text-light: #86868b;      
             --accent-gold: #cfa858;     
             --bg-color: #fdfbfb;
-            --btn-size: 50px; /* 【新增】定义统一的按钮尺寸变量 */
+            --btn-size: 50px; 
         }
 
         html, body {
@@ -56,8 +56,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* === 【修改】统一按钮样式 === */
-        /* 强制覆盖 hamburger 和 control-btn 的大小，使其一致 */
+        /* === 按钮样式 === */
         .hamburger, .control-btn {
             width: var(--btn-size) !important;
             height: var(--btn-size) !important;
@@ -65,28 +64,24 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            /* 确保在同一层级或样式风格类似 */
         }
         
-        /* 确保音乐按钮内的图标大小合适 */
         .control-btn svg {
             width: 24px;
             height: 24px;
         }
 
-
-        /* === 3. 音乐控制区定位修正 === */
+        /* === 3. 音乐控制区 === */
         .controls-area {
             position: fixed;
-            top: 25px;       /* 【关键修复】必须与 hamburger.css 中的 top: 25px 保持一致 */
-            right: 25px;     /* 与左侧汉堡菜单对称，放在右侧 */
-            z-index: 900;    /* 层级与 hamburger 保持一致 */
+            top: 25px;       
+            right: 25px;     
+            z-index: 900;    
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* 确保按钮本身没有额外的 margin 导致错位 */
         .control-btn {
             margin: 0 !important; 
         }
@@ -113,10 +108,9 @@
             color: rgba(0,0,0,0.03); 
         }
         
-        /* === 【修改】Scroll 提示位置 === */
         .hero-scroll-hint {
             position: absolute; 
-            bottom: 10px; /* 从 30px 改为 10px，更靠下 */
+            bottom: 10px; 
             display: flex; flex-direction: column; align-items: center; gap: 8px;
             opacity: 0.6; animation: bounce 2s infinite;
             z-index: 20; 
@@ -216,14 +210,22 @@
         .feature-img-box:hover .feature-img { transform: scale(1.05); }
 
         .exhibition-list { max-width: 800px; margin: 0 auto; }
+        
+        /* 修复后的列表样式 */
         .exhibition-item {
             display: flex; justify-content: space-between; align-items: baseline;
             padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
             transition: padding 0.3s; cursor: default;
         }
         .exhibition-item:hover { padding-left: 15px; border-bottom-color: var(--accent-gold); }
+        
         .ex-year { font-weight: 700; color: var(--accent-gold); width: 60px; }
+        
+        /* 【关键修复】确保里面的链接没有下划线，且颜色继承 */
         .ex-name { flex: 1; font-weight: 500; color: var(--text-dark); }
+        .ex-name a { text-decoration: none; color: inherit; transition: opacity 0.3s; display: block; }
+        .ex-name a:hover { opacity: 0.6; }
+        
         .ex-loc { font-size: 12px; color: var(--text-light); }
 
         .site-footer {
@@ -391,25 +393,27 @@
             <p class="section-subtitle">近期展览</p>
             <div class="section-line"></div>
         </div>
+        
         <div class="exhibition-list">
             <div class="exhibition-item">
                 <div class="ex-year">2024</div>
-                <div class="ex-name"><a href="exhibitions/exhibition1.html">晨光与墨痕 - 严旭个展</div>
+                <div class="ex-name">
+                    <a href="exhibitions/exhibition1.html">晨光与墨痕 - 严旭个展</a>
+                </div>
                 <div class="ex-loc">SHANGHAI, M50</div>
             </div>
             <div class="exhibition-item">
                 <div class="ex-year">2023</div>
-                <div class="ex-name"><a href="exhibitions/exhibition2.html">东方既白 - 当代水墨联展</div>
+                <div class="ex-name">
+                    <a href="exhibitions/exhibition1.html">东方既白 - 当代水墨联展</a>
+                </div>
                 <div class="ex-loc">BEIJING, 798 ART ZONE</div>
             </div>
             <div class="exhibition-item">
                 <div class="ex-year">2022</div>
-                <div class="ex-name"><a href="exhibitions/exhibition3.html">曼波的声音</div>
-                <div class="ex-loc">TOKYO, GINZA</div>
-            </div>
-            <div class="exhibition-item">
-                <div class="ex-year">2021</div>
-                <div class="ex-name"><a href="exhibitions/exhibition4.html">静谧的声音</div>
+                <div class="ex-name">
+                    <a href="exhibitions/exhibition1.html">静谧的声音</a>
+                </div>
                 <div class="ex-loc">TOKYO, GINZA</div>
             </div>
         </div>
@@ -598,11 +602,11 @@
 
 
         // ============================================
+        // 修复：只针对 http 开头的外部链接新开窗口，内部链接直接跳转
         document.querySelectorAll('a[href]').forEach(a => {
-            // 排除 href="#" (语言切换) 和锚点链接 (#exhibitions-section)
             const href = a.getAttribute('href');
-            if (href && href !== '#' && !href.startsWith('#')) {
-                if (!a.target) a.setAttribute('target', '_blank');
+            if (href && href.startsWith('http')) {
+                a.setAttribute('target', '_blank');
                 a.setAttribute('rel', 'noopener noreferrer');
             }
         });
