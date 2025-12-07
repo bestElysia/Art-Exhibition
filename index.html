@@ -33,11 +33,6 @@
             touch-action: pan-y; 
         }
 
-        /* 【关键修复】只保留 opacity: 0，去掉 transition 和 visibility，防止与 GSAP 冲突 */
-        body {
-            opacity: 0; 
-        }
-
         html.lenis, html.lenis body { height: auto; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
@@ -226,6 +221,7 @@
         
         .ex-year { font-weight: 700; color: var(--accent-gold); width: 60px; }
         
+        /* 【关键修复】确保里面的链接没有下划线，且颜色继承 */
         .ex-name { flex: 1; font-weight: 500; color: var(--text-dark); }
         .ex-name a { text-decoration: none; color: inherit; transition: opacity 0.3s; display: block; }
         .ex-name a:hover { opacity: 0.6; }
@@ -475,6 +471,7 @@
         // 暴露给全局，以便 hamburger.js 调用
         window.toggleLanguage = function() {
             currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            // 如果未来有内容翻译逻辑，写在这里
             console.log("Language switched to: " + currentLang);
         }
 
@@ -603,48 +600,22 @@
         document.getElementById('close-modal-btn').onclick = closeModal;
         modal.onclick = (e) => { if(e.target === modal) closeModal(); };
 
-        // === 【关键修复】链接跳转及淡出逻辑 ===
-        // 现在会正确处理导航栏的 exhibitions.html
-        document.querySelectorAll('a[href]').forEach(a => {
-            const href = a.getAttribute('href');
-            
-            // 1. 新窗口打开逻辑 (外部链接 OR 包含 exhibitions 的链接)
-            // 之前因为判断了 includes('exhibitions/') 斜杠，导致导航栏 exhibitions.html 没匹配上
-            // 现在改为 indexOf('exhibitions') > -1，只要包含这个词就新窗口打开
-            if (href && (href.startsWith('http') || href.indexOf('exhibitions') > -1)) {
-                a.setAttribute('target', '_blank');
-                a.setAttribute('rel', 'noopener noreferrer');
-            } 
-            // 2. 内部页面跳转逻辑 (淡出)
-            else if (href && !href.startsWith('#') && href !== '#') {
-                a.addEventListener('click', function(e) {
-                    e.preventDefault(); 
-                    const targetUrl = this.href;
 
-                    gsap.to("body", {
-                        opacity: 0,
-                        duration: 0.6,
-                        ease: "power2.inOut",
-                        onComplete: () => {
-                            window.location.href = targetUrl;
-                        }
-                    });
-                });
-            }
-        });
+        // ============================================
+      // 修复：针对 http 开头的外部链接，或者包含 'exhibitions/' 的画展链接，都新开窗口
+document.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href');
+    
+    // 修改了这里的判断条件：
+    // 1. 以 http 开头 (外部链接)
+    //    或者
+    // 2. 链接路径里包含 'exhibitions/' (画展详情页)
+    if (href && (href.startsWith('http') || href.includes('exhibitions/'))) {
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+    }
+});
 
-        // === 【关键修复】页面淡入逻辑 ===
-        // 使用 DOMContentLoaded 更快触发，解决主页 "没效果" 的问题
-        document.addEventListener("DOMContentLoaded", () => {
-             gsap.to("body", { opacity: 1, duration: 1.2, ease: "power2.out" });
-        });
-
-        // 监听 pageshow 防止后退白屏
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted || getComputedStyle(document.body).opacity == '0') {
-                gsap.to("body", { opacity: 1, duration: 0.5, ease: "power2.out" });
-            }
-        });
 
     </script>
 </body>
