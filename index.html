@@ -33,11 +33,9 @@
             touch-action: pan-y; 
         }
 
-        /* 【新增】初始隐藏 body，配合 JS 实现淡入，避免遮罩层 */
+        /* 【关键修复】只保留 opacity: 0，去掉 transition 和 visibility，防止与 GSAP 冲突 */
         body {
-            opacity: 0;
-            visibility: hidden; /* 确保加载前不可见 */
-            transition: opacity 0.8s ease; /* CSS 兜底过渡 */
+            opacity: 0; 
         }
 
         html.lenis, html.lenis body { height: auto; }
@@ -605,22 +603,24 @@
         document.getElementById('close-modal-btn').onclick = closeModal;
         modal.onclick = (e) => { if(e.target === modal) closeModal(); };
 
-        // === 修复链接跳转及淡出逻辑 ===
+        // === 【关键修复】链接跳转及淡出逻辑 ===
+        // 现在会正确处理导航栏的 exhibitions.html
         document.querySelectorAll('a[href]').forEach(a => {
             const href = a.getAttribute('href');
             
-            // 1. 处理外部链接和画展详情页 (新窗口打开，不做淡出)
-            if (href && (href.startsWith('http') || href.includes('exhibitions/'))) {
+            // 1. 新窗口打开逻辑 (外部链接 OR 包含 exhibitions 的链接)
+            // 之前因为判断了 includes('exhibitions/') 斜杠，导致导航栏 exhibitions.html 没匹配上
+            // 现在改为 indexOf('exhibitions') > -1，只要包含这个词就新窗口打开
+            if (href && (href.startsWith('http') || href.indexOf('exhibitions') > -1)) {
                 a.setAttribute('target', '_blank');
                 a.setAttribute('rel', 'noopener noreferrer');
             } 
-            // 2. 处理内部页面跳转 (当前窗口打开，执行淡出动画)
+            // 2. 内部页面跳转逻辑 (淡出)
             else if (href && !href.startsWith('#') && href !== '#') {
                 a.addEventListener('click', function(e) {
-                    e.preventDefault(); // 阻止立即跳转
+                    e.preventDefault(); 
                     const targetUrl = this.href;
 
-                    // GSAP 页面淡出
                     gsap.to("body", {
                         opacity: 0,
                         duration: 0.6,
@@ -633,20 +633,16 @@
             }
         });
 
-        // === 页面全局淡入与状态重置 ===
-        // 核心逻辑：解决"只有第一次有效"的问题
-        window.addEventListener('load', () => {
-            // 页面加载完成后，淡入 Body
-            // autoAlpha 自动处理 opacity 和 visibility
-            gsap.to("body", { autoAlpha: 1, duration: 1.2, ease: "power2.out" });
+        // === 【关键修复】页面淡入逻辑 ===
+        // 使用 DOMContentLoaded 更快触发，解决主页 "没效果" 的问题
+        document.addEventListener("DOMContentLoaded", () => {
+             gsap.to("body", { opacity: 1, duration: 1.2, ease: "power2.out" });
         });
 
-        // 监听 pageshow 事件 - 针对 Safari/Chrome 的 bfcache (后退/前进缓存)
+        // 监听 pageshow 防止后退白屏
         window.addEventListener('pageshow', (event) => {
-            // 如果页面是从缓存加载的 (event.persisted 为 true)，或者 body 依然是透明的
             if (event.persisted || getComputedStyle(document.body).opacity == '0') {
-                // 强制立即重置为可见状态，防止后退时页面全白
-                gsap.to("body", { autoAlpha: 1, duration: 0.5, ease: "power2.out" });
+                gsap.to("body", { opacity: 1, duration: 0.5, ease: "power2.out" });
             }
         });
 
