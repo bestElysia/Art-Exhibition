@@ -168,7 +168,7 @@
         }
         .art-img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- 修复对齐 Bug 的核心代码 --- */
+        /* --- 浏览量对齐修复 --- */
         .art-preview-info { 
             margin-top: 15px; width: 100%;
             display: flex; flex-direction: column; gap: 4px;
@@ -181,18 +181,18 @@
         .art-preview-meta-row {
             display: flex; justify-content: space-between; align-items: center;
             font-size: 12px; color: var(--text-light);
-            line-height: 1; /* 统一文字行高 */
+            line-height: 1; 
         }
         .art-views { 
             display: flex; 
-            align-items: center; /* 核心修复：垂直居中 */
+            align-items: center; 
             gap: 4px; 
-            height: 12px; /* 与文字大小匹配 */
+            height: 12px; 
         }
         .art-views svg { 
             width: 14px; height: 14px; 
             fill: var(--text-light); 
-            display: block; /* 消除 baseline 空隙 */
+            display: block; 
         }
 
         /* === 5. 主要内容区 === */
@@ -297,7 +297,6 @@
         .modal-text-inner { padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
         .modal-title { font-size: 26px; font-weight: 700; margin: 0 0 8px 0; color: var(--text-dark); }
         .modal-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: var(--text-light); font-size: 13px; line-height: 1; }
-        /* 弹窗内的浏览量对齐修复 */
         .modal-views-text { display: flex; align-items: center; gap: 4px; height: 14px; }
         .modal-views-text svg { width: 16px; height: 16px; fill: var(--text-light); display: block; }
 
@@ -368,7 +367,6 @@
     </header>
 
     <main class="content-section">
-        
         <div class="section-header">
             <h2 class="section-title">ABOUT ARTIST</h2>
             <p class="section-subtitle">严旭 · 水墨</p>
@@ -418,7 +416,6 @@
                 <div class="ex-loc">BEIJING, 798 ART ZONE</div>
             </div>
         </div>
-
     </main>
 
     <footer class="site-footer">
@@ -452,16 +449,29 @@
     <script src="assets/js/music-player.js"></script>
 
     <script>
-        const bannerArtworks = [
-            { id: 1, src: "assets/images/gallery/eg1.jpg", title: "晨光熹微", year: "2023", size: "138x69cm", views: 1204, desc: "笔墨在晨光中苏醒，捕捉第一缕阳光穿透云雾的瞬间..." },
-            { id: 2, src: "assets/images/gallery/eg2.jpg", title: "山间清风", year: "2023", size: "69x69cm", views: 892, desc: "以清透的淡彩与水墨交融，表现山间清风拂过林梢的动态..." },
-            { id: 3, src: "assets/images/gallery/eg3.jpg", title: "古木幽鸣", year: "2022", size: "180x97cm", views: 2431, desc: "聚焦于古树的肌理与沧桑感..." },
-            { id: 4, src: "assets/images/gallery/eg4.jpg", title: "溪山行旅", year: "2023", size: "138x34cm", views: 1567, desc: "向传统宋画致敬的长卷构图..." },
-            { id: 5, src: "assets/images/gallery/eg5.jpg", title: "云蒸霞蔚", year: "2024", size: "90x90cm", views: 3210, desc: "大胆运用朱砂与石青色..." },
-            { id: 6, src: "assets/images/gallery/eg6.jpg", title: "静谧之境", year: "2022", size: "69x45cm", views: 780, desc: "极简主义风格..." },
-            { id: 7, src: "assets/images/gallery/eg7.jpg", title: "雨后初晴", year: "2023", size: "138x69cm", views: 1890, desc: "利用湿画法表现雨后..." },
-            { id: 8, src: "assets/images/gallery/eg8.jpg", title: "秋山红叶", year: "2023", size: "120x120cm", views: 2105, desc: "满幅构图，以热烈的色彩..." },
+        // 原始数据，使用 baseViews 作为初始保底浏览量
+        const bannerArtworksRaw = [
+            { id: 1, src: "assets/images/gallery/eg1.jpg", title: "晨光熹微", year: "2023", size: "138x69cm", baseViews: 1200, desc: "笔墨在晨光中苏醒，捕捉第一缕阳光穿透云雾的瞬间..." },
+            { id: 2, src: "assets/images/gallery/eg2.jpg", title: "山间清风", year: "2023", size: "69x69cm", baseViews: 880, desc: "以清透的淡彩与水墨交融，表现山间清风拂过林梢的动态..." },
+            { id: 3, src: "assets/images/gallery/eg3.jpg", title: "古木幽鸣", year: "2022", size: "180x97cm", baseViews: 2400, desc: "聚焦于古树的肌理与沧桑感..." },
+            { id: 4, src: "assets/images/gallery/eg4.jpg", title: "溪山行旅", year: "2023", size: "138x34cm", baseViews: 1560, desc: "向传统宋画致敬的长卷构图..." },
+            { id: 5, src: "assets/images/gallery/eg5.jpg", title: "云蒸霞蔚", year: "2024", size: "90x90cm", baseViews: 3200, desc: "大胆运用朱砂与石青色..." },
+            { id: 6, src: "assets/images/gallery/eg6.jpg", title: "静谧之境", year: "2022", size: "69x45cm", baseViews: 760, desc: "极简主义风格..." },
+            { id: 7, src: "assets/images/gallery/eg7.jpg", title: "雨后初晴", year: "2023", size: "138x69cm", baseViews: 1880, desc: "利用湿画法表现雨后..." },
+            { id: 8, src: "assets/images/gallery/eg8.jpg", title: "秋山红叶", year: "2023", size: "120x120cm", baseViews: 2100, desc: "满幅构图，以热烈的色彩..." },
         ];
+
+        // --- 核心逻辑：自动增长浏览量 ---
+        const startDate = new Date("2025-01-01"); // 设置起始日期
+        const today = new Date();
+        const diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)); // 计算天数差
+
+        const bannerArtworks = bannerArtworksRaw.map(art => {
+            // 为每个作品生成一个固定的每日增量（基于作品ID），范围 3-10
+            const dailyRate = ((art.id * 13) % 8) + 3; 
+            const dynamicViews = art.baseViews + (diffDays * dailyRate);
+            return { ...art, views: dynamicViews };
+        });
 
         const displayArtworks = [...bannerArtworks, ...bannerArtworks];
         const wrapper = document.getElementById('gallery-wrapper');
@@ -525,7 +535,7 @@
 
         window.openStaticModal = (src, title, year, size, views, desc) => {
             mImg.src = src; mTitle.innerText = title; mYear.innerText = `${year} · ${size || ''}`;
-            mViews.innerText = views || '1000+'; mDesc.innerHTML = desc;
+            mViews.innerText = views; mDesc.innerHTML = desc;
             modal.classList.add('active'); document.body.classList.add('modal-open');
             lenis.stop(); loopTween.pause();
             gsap.fromTo(modal.querySelector('.modal-content-box'), { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4 });
