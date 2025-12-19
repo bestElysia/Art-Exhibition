@@ -13,13 +13,38 @@
     <link rel="stylesheet" href="assets/css/music-player.css">
 
     <style>
-        /* === 1. 基础设置 === */
+        /* === 1. 基础设置与颜色系统 === */
         :root {
+            /* 浅色模式变量 (Light Mode) */
             --text-dark: #1d1d1f;       
             --text-light: #86868b;      
             --accent-gold: #cfa858;     
             --bg-color: #fdfbfb;
+            --card-bg: #ffffff;
+            --modal-bg: rgba(255, 255, 255, 0.9);
+            --modal-overlay: rgba(255, 255, 255, 0.6);
+            --line-color: rgba(0, 0, 0, 0.05);
+            --hero-text: rgba(0, 0, 0, 0.03);
             --btn-size: 50px; 
+            --input-text: #444;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+        }
+
+        /* 深色模式变量覆盖 (Dark Mode) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --text-dark: #f5f5f7;       
+                --text-light: #98989d;      
+                --accent-gold: #e5bd71;     
+                --bg-color: #0d0b14; 
+                --card-bg: #1c1c1e;
+                --modal-bg: rgba(28, 28, 30, 0.95);
+                --modal-overlay: rgba(0, 0, 0, 0.8);
+                --line-color: rgba(255, 255, 255, 0.1);
+                --hero-text: rgba(255, 255, 255, 0.05);
+                --input-text: #d1d1d6;
+                --shadow-color: rgba(0, 0, 0, 0.4);
+            }
         }
 
         html, body {
@@ -31,6 +56,7 @@
             color: var(--text-dark);
             overflow-x: hidden;
             touch-action: pan-y; 
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         html.lenis, html.lenis body { height: auto; }
@@ -45,6 +71,12 @@
             background-size: 400% 400%;
             animation: gradientFlow 20s ease infinite;
         }
+        @media (prefers-color-scheme: dark) {
+            .morning-bg {
+                background: linear-gradient(-45deg, #0d0b14, #1a1625, #0f172a, #0d0b14);
+            }
+        }
+
         .noise-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; opacity: 0.3; pointer-events: none;
@@ -64,33 +96,28 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            color: var(--text-dark);
         }
         
         .control-btn svg {
             width: 24px;
             height: 24px;
+            fill: currentColor;
         }
 
-        /* === 3. 音乐控制区 === */
         .controls-area {
             position: fixed;
-            top: 25px;       
-            right: 25px;     
+            top: 25px; right: 25px;     
             z-index: 900;    
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .control-btn {
-            margin: 0 !important; 
-        }
-
         /* === 4. Hero Banner === */
         .hero-section {
             position: relative;
-            width: 100%; 
-            height: 90vh; 
+            width: 100%; height: 90vh; 
             overflow: hidden; 
             display: flex; align-items: center;
             mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
@@ -99,47 +126,41 @@
 
         .hero-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; 
-            z-index: 1; 
+            pointer-events: none; z-index: 1; 
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         .hero-title {
             font-size: 13vw; font-weight: 800; letter-spacing: 4px; margin-bottom: 20px;
-            color: rgba(0,0,0,0.03); 
+            color: var(--hero-text); 
         }
         
         .hero-scroll-hint {
-            position: absolute; 
-            bottom: 10px; 
+            position: absolute; bottom: 10px; 
             display: flex; flex-direction: column; align-items: center; gap: 8px;
             opacity: 0.6; animation: bounce 2s infinite;
             z-index: 20; 
         }
         .hero-scroll-text { font-size: 10px; letter-spacing: 2px; color: var(--text-light); }
         .hero-arrow { width: 1px; height: 30px; background: var(--text-light); }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
         .gallery-wrapper {
             display: flex; align-items: center; flex-wrap: nowrap;
-            height: 65%; 
-            padding-left: 5vw;
-            will-change: transform; 
-            position: relative; z-index: 10; 
+            height: 65%; padding-left: 5vw;
+            will-change: transform; position: relative; z-index: 10; 
         }
 
         .gallery-item {
             display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
             height: 100%; flex-shrink: 0; position: relative;
-            margin-right: 4vw; 
-            width: 40vw; 
+            margin-right: 4vw; width: 40vw; 
         }
 
         .art-card {
             position: relative; width: 100%; height: 100%; 
             overflow: hidden; cursor: pointer;
-            background: #fff; padding: 8px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
+            background: var(--card-bg); padding: 8px;
+            box-shadow: 0 15px 40px var(--shadow-color);
+            transition: transform 0.3s ease, background-color 0.4s;
             border-radius: 4px;
         }
 
@@ -160,11 +181,9 @@
         }
         .art-preview-meta-row {
             display: flex; justify-content: space-between; align-items: center;
-            font-size: 12px; color: var(--text-light); font-family: sans-serif;
+            font-size: 12px; color: var(--text-light);
         }
-        .art-views {
-            display: flex; align-items: center; gap: 4px;
-        }
+        .art-views { display: flex; align-items: center; gap: 4px; }
         .art-views svg { width: 12px; height: 12px; fill: var(--text-light); }
 
         /* === 5. 主要内容区 === */
@@ -175,12 +194,12 @@
         }
 
         .section-header { margin-bottom: 60px; text-align: center; }
-        .section-title { font-size: 28px; font-weight: 700; margin-bottom: 10px; letter-spacing: 2px; }
+        .section-title { font-size: 28px; font-weight: 700; margin-bottom: 10px; letter-spacing: 2px; color: var(--text-dark); }
         .section-subtitle { font-size: 12px; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; }
         .section-line { width: 30px; height: 2px; background: var(--accent-gold); margin: 20px auto 0; }
 
         .about-text {
-            font-size: 16px; line-height: 1.8; color: #555; text-align: center;
+            font-size: 16px; line-height: 1.8; color: var(--text-light); text-align: center;
             max-width: 700px; margin: 0 auto 80px; font-weight: 300;
         }
 
@@ -192,52 +211,44 @@
         
         .feature-text { flex: 1; }
         .feature-text h3 { font-size: 24px; font-weight: 600; margin-bottom: 15px; color: var(--text-dark); }
-        .feature-text p { font-size: 15px; line-height: 1.7; color: #666; margin-bottom: 25px; text-align: justify; }
+        .feature-text p { font-size: 15px; line-height: 1.7; color: var(--text-light); margin-bottom: 25px; text-align: justify; }
         .read-more { 
             display: inline-block; padding: 8px 25px; 
             border: 1px solid var(--text-dark); border-radius: 30px;
             font-size: 11px; letter-spacing: 1px; cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s; color: var(--text-dark);
         }
-        .read-more:hover { background: var(--text-dark); color: #fff; }
+        .read-more:hover { background: var(--text-dark); color: var(--bg-color); }
 
         .feature-img-box {
             flex: 1.2; height: 400px; position: relative;
             overflow: hidden; cursor: pointer; border-radius: 6px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+            box-shadow: 0 20px 50px var(--shadow-color);
         }
         .feature-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
-        .feature-img-box:hover .feature-img { transform: scale(1.05); }
 
         .exhibition-list { max-width: 800px; margin: 0 auto; }
-        
-        /* 修复后的列表样式 */
         .exhibition-item {
             display: flex; justify-content: space-between; align-items: baseline;
-            padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 20px 0; border-bottom: 1px solid var(--line-color);
             transition: padding 0.3s; cursor: default;
         }
         .exhibition-item:hover { padding-left: 15px; border-bottom-color: var(--accent-gold); }
-        
         .ex-year { font-weight: 700; color: var(--accent-gold); width: 60px; }
-        
-        /* 【关键修复】确保里面的链接没有下划线，且颜色继承 */
         .ex-name { flex: 1; font-weight: 500; color: var(--text-dark); }
         .ex-name a { text-decoration: none; color: inherit; transition: opacity 0.3s; display: block; }
-        .ex-name a:hover { opacity: 0.6; }
-        
         .ex-loc { font-size: 12px; color: var(--text-light); }
 
         .site-footer {
             text-align: center; padding: 50px 20px;
-            border-top: 1px solid rgba(0,0,0,0.05);
+            border-top: 1px solid var(--line-color);
             font-size: 11px; color: var(--text-light); letter-spacing: 1px;
         }
 
         /* === 6. 弹窗 UI === */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.6); 
+            background: var(--modal-overlay); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             z-index: 9999; 
             display: flex; justify-content: center; align-items: center;
@@ -247,50 +258,45 @@
 
         .modal-content-box {
             position: relative; width: 90vw; height: 85vh; max-width: 1400px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            background: var(--modal-bg);
+            border: 1px solid var(--line-color);
             border-radius: 16px;
-            box-shadow: 0 40px 90px rgba(0,0,0,0.1);
+            box-shadow: 0 40px 90px rgba(0,0,0,0.3);
             display: flex; flex-direction: column;
             transform: scale(0.96); opacity: 0;
             overflow: hidden;
+            color: var(--text-dark);
         }
         
         .modal-img-wrapper {
             flex: 1; width: 100%; display: flex; justify-content: center; align-items: center;
-            padding: 30px; background: #fafafa;
+            padding: 30px; background: rgba(0,0,0,0.03);
         }
-        .modal-img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+        .modal-img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 40px var(--shadow-color); }
 
         .modal-text {
-            width: 100%; border-top: 1px solid rgba(0,0,0,0.05);
-            background: #fff; max-height: 50%;
+            width: 100%; border-top: 1px solid var(--line-color);
+            background: transparent; max-height: 50%;
         }
 
         @media (min-width: 1024px) {
             .modal-content-box { flex-direction: row; }
-            .modal-img-wrapper { height: 100%; width: 65%; border-right: 1px solid rgba(0,0,0,0.05); border-bottom: none; }
+            .modal-img-wrapper { height: 100%; width: 65%; border-right: 1px solid var(--line-color); border-bottom: none; }
             .modal-text { height: 100%; width: 35%; border-top: none; max-height: 100%; }
         }
 
         .modal-text-inner { padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
-        .modal-title { font-size: 26px; font-weight: 700; margin: 0 0 8px 0; color: #1d1d1f; }
-        
-        .modal-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #86868b; font-size: 13px; }
-        .modal-meta-divider { opacity: 0.3; }
-        .modal-views-text { display: flex; align-items: center; gap: 4px; }
-        .modal-views-text svg { width: 14px; height: 14px; fill: #86868b; }
-
+        .modal-title { font-size: 26px; font-weight: 700; margin: 0 0 8px 0; color: var(--text-dark); }
+        .modal-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: var(--text-light); font-size: 13px; }
         .modal-desc-scroll {
-            font-size: 15px; line-height: 1.8; color: #444; 
+            font-size: 15px; line-height: 1.8; color: var(--input-text); 
             flex-grow: 1; overflow-y: auto; padding-right: 10px;
-            overscroll-behavior: contain;
         }
         .close-btn {
             position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%;
-            background: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            background: var(--card-bg); box-shadow: 0 5px 15px var(--shadow-color);
             display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 100;
-            font-size: 18px; color: #333;
+            font-size: 18px; color: var(--text-dark);
         }
 
         /* 移动端适配 */
@@ -298,14 +304,10 @@
             .hero-section { height: 75vh; } 
             .gallery-wrapper { height: 60%; }
             .gallery-item { width: 80vw; margin-right: 5vw; }
-            .hero-title { font-size: 18vw; opacity: 0.05; }
-            .art-preview-title { font-size: 20px; }
-            .art-preview-meta-row { font-size: 12px; }
             .feature-block { flex-direction: column; gap: 30px; margin-bottom: 80px; }
             .feature-block.reverse { flex-direction: column; }
             .feature-img-box { width: 100%; height: 280px; }
             .modal-content-box { width: 100%; height: 100%; border-radius: 0; }
-            .section-title { font-size: 24px; }
         }
     </style>
 </head>
@@ -350,8 +352,7 @@
                 <div class="hero-arrow"></div>
             </div>
         </div>
-        <div class="gallery-wrapper" id="gallery-wrapper">
-            </div>
+        <div class="gallery-wrapper" id="gallery-wrapper"></div>
     </header>
 
     <main class="content-section">
@@ -363,16 +364,16 @@
         </div>
         <p class="about-text">
             严旭，当代水墨探索者。他的作品试图在传统笔墨与现代光影之间寻找平衡，捕捉自然界中转瞬即逝的晨光与暮色。
-            通过对水、墨、纸张微妙关系的极致把控，他构建了一个既真实又虚幻的“晨光画境”，邀请观者在喧嚣中寻找内心的宁静。
+            通过对水、墨、纸张微妙关系的极致把控，他构建了一个既真实又虚幻的“晨光画境”。
         </p>
 
         <div class="feature-block">
             <div class="feature-text">
                 <h3>静谧之境 · 创作手记</h3>
-                <p>在创作《静谧之境》系列时，我试图做减法。留白不仅仅是未被触碰的纸面，它是呼吸，是空间，是未尽之言。通过极简的构图，让墨色在纸上自然晕染，形成不可复制的肌理。</p>
-                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '180x97cm', '780', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。')">VIEW ARTWORK</div>
+                <p>在创作《静谧之境》系列时，我试图做减法。留白不仅仅是未被触碰的纸面，它是呼吸，是空间，是未尽之言。</p>
+                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '180x97cm', '780', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草。')">VIEW ARTWORK</div>
             </div>
-            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '180x97cm', '780', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草，追求“少即是多”的禅意表达。')">
+            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg6.jpg', '静谧之境 No.6', '2022', '180x97cm', '780', '极简主义风格。大部分画面留白，仅在角落以简练的笔触勾勒出一石一草。')">
                 <img src="assets/images/gallery/eg6.jpg" class="feature-img" alt="Artwork">
             </div>
         </div>
@@ -380,10 +381,10 @@
         <div class="feature-block reverse">
             <div class="feature-text">
                 <h3>云蒸霞蔚 · 色彩的实验</h3>
-                <p>这是对传统水墨的一次大胆突破。朱砂与石青的碰撞，模拟日出时分云层中光影的剧烈变化。在这幅作品中，不仅能看到传统的皴法，更能感受到现代绘画对光影的直接描绘。</p>
-                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '180x97cm', '3210', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。')">VIEW ARTWORK</div>
+                <p>这是对传统水墨的一次大胆突破。朱砂与石青的碰撞，模拟日出时分云层中光影的剧烈变化。</p>
+                <div class="read-more" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '180x97cm', '3210', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。')">VIEW ARTWORK</div>
             </div>
-            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '180x97cm', '3210', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。色彩的碰撞与融合，旨在表现自然界瞬息万变的磅礴能量。')">
+            <div class="feature-img-box" onclick="openStaticModal('assets/images/gallery/eg5.jpg', '云蒸霞蔚 No.5', '2024', '180x97cm', '3210', '大胆运用朱砂与石青色，描绘日出时分云蒸霞蔚的壮观景象。')">
                 <img src="assets/images/gallery/eg5.jpg" class="feature-img" alt="Artwork">
             </div>
         </div>
@@ -397,23 +398,17 @@
         <div class="exhibition-list">
             <div class="exhibition-item">
                 <div class="ex-year">2024</div>
-                <div class="ex-name">
-                    <a href="exhibitions/exhibition1.html">晨光与墨痕 - 严旭个展</a>
-                </div>
+                <div class="ex-name"><a href="exhibitions/exhibition1.html">晨光与墨痕 - 严旭个展</a></div>
                 <div class="ex-loc">SHANGHAI, M50</div>
             </div>
             <div class="exhibition-item">
                 <div class="ex-year">2023</div>
-                <div class="ex-name">
-                    <a href="exhibitions/exhibition1.html">东方既白 - 当代水墨联展</a>
-                </div>
+                <div class="ex-name"><a href="exhibitions/exhibition1.html">东方既白 - 当代水墨联展</a></div>
                 <div class="ex-loc">BEIJING, 798 ART ZONE</div>
             </div>
             <div class="exhibition-item">
                 <div class="ex-year">2022</div>
-                <div class="ex-name">
-                    <a href="exhibitions/exhibition1.html">静谧的声音</a>
-                </div>
+                <div class="ex-name"><a href="exhibitions/exhibition1.html">静谧的声音</a></div>
                 <div class="ex-loc">TOKYO, GINZA</div>
             </div>
         </div>
@@ -451,7 +446,6 @@
     <script src="assets/js/music-player.js"></script>
 
     <script>
-        // === 数据 ===
         const bannerArtworks = [
             { id: 1, src: "assets/images/gallery/eg1.jpg", title: "晨光熹微", year: "2023", size: "138x69cm", views: 1204, desc: "笔墨在晨光中苏醒，捕捉第一缕阳光穿透云雾的瞬间..." },
             { id: 2, src: "assets/images/gallery/eg2.jpg", title: "山间清风", year: "2023", size: "69x69cm", views: 892, desc: "以清透的淡彩与水墨交融，表现山间清风拂过林梢的动态..." },
@@ -463,19 +457,7 @@
             { id: 8, src: "assets/images/gallery/eg8.jpg", title: "秋山红叶", year: "2023", size: "120x120cm", views: 2105, desc: "满幅构图，以热烈的色彩..." },
         ];
 
-        // 克隆数据实现无限循环
         const displayArtworks = [...bannerArtworks, ...bannerArtworks];
-
-        let currentLang = 'zh';
-        
-        // 暴露给全局，以便 hamburger.js 调用
-        window.toggleLanguage = function() {
-            currentLang = currentLang === 'zh' ? 'en' : 'zh';
-            // 如果未来有内容翻译逻辑，写在这里
-            console.log("Language switched to: " + currentLang);
-        }
-
-        // === DOM 生成 ===
         const wrapper = document.getElementById('gallery-wrapper');
         const isMobile = window.innerWidth < 768;
         const itemWidthVw = isMobile ? 80 : 40; 
@@ -486,7 +468,6 @@
             item.className = 'gallery-item';
             item.style.width = `${itemWidthVw}vw`;
             item.style.marginRight = `${itemMarginVw}vw`;
-            
             item.innerHTML = `
                 <div class="art-card" onclick="openBannerModal(${index})">
                     <div class="art-card-inner">
@@ -507,53 +488,23 @@
             wrapper.appendChild(item);
         });
 
-        // === 动画逻辑 ===
         gsap.registerPlugin(ScrollTrigger);
-
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            direction: 'vertical', 
-            smooth: true,
-        });
-
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
+        const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
         requestAnimationFrame(raf);
 
-        // Banner 自动无限流动
         const singleItemVw = itemWidthVw + itemMarginVw;
-        const totalVw = singleItemVw * displayArtworks.length;
         const oneSetVw = singleItemVw * bannerArtworks.length;
-        wrapper.style.width = `${totalVw}vw`;
+        wrapper.style.width = `${singleItemVw * displayArtworks.length}vw`;
 
         const loopTween = gsap.to(wrapper, {
-            x: `-${oneSetVw}vw`, 
-            duration: isMobile ? 30 : 45, // 速度
-            ease: "none",
-            repeat: -1, 
+            x: `-${oneSetVw}vw`, duration: isMobile ? 30 : 45, ease: "none", repeat: -1, 
         });
 
-        // 视差
         gsap.utils.toArray(".art-card-inner").forEach(inner => {
-            gsap.to(inner, {
-                xPercent: 15,
-                ease: "none",
-                repeat: -1,
-                duration: isMobile ? 30 : 45 
-            });
+            gsap.to(inner, { xPercent: 15, ease: "none", repeat: -1, duration: isMobile ? 30 : 45 });
         });
 
-        const pauseBanner = () => { loopTween.pause(); };
-        const resumeBanner = () => { if(!document.body.classList.contains('modal-open')) loopTween.play(); };
-
-        // 鼠标悬停暂停
-        wrapper.addEventListener('mouseenter', pauseBanner);
-        wrapper.addEventListener('mouseleave', resumeBanner);
-
-        // === 弹窗逻辑 ===
         const modal = document.getElementById('detail-modal');
         const mImg = document.getElementById('modal-img');
         const mTitle = document.getElementById('m-title');
@@ -561,62 +512,34 @@
         const mViews = document.getElementById('m-views'); 
         const mDesc = document.getElementById('m-desc');
 
-        window.openBannerModal = function(index) {
+        window.openBannerModal = (index) => {
             const data = displayArtworks[index];
             openStaticModal(data.src, data.title, data.year, data.size, data.views, data.desc);
         }
 
-        window.openStaticModal = function(src, title, year, size, views, desc) {
-            mImg.src = src;
-            mTitle.innerText = title;
-            mYear.innerText = `${year} · ${size || ''}`;
-            document.querySelector('#m-views').innerText = views || '1000+'; 
-            mDesc.innerHTML = desc;
-            
-            modal.classList.add('active');
-            document.body.classList.add('modal-open');
-            lenis.stop();
-            loopTween.pause();
-
-            const box = modal.querySelector('.modal-content-box');
-            gsap.fromTo(box, 
-                { scale: 0.9, opacity: 0 },
-                { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.1)" }
-            );
+        window.openStaticModal = (src, title, year, size, views, desc) => {
+            mImg.src = src; mTitle.innerText = title; mYear.innerText = `${year} · ${size || ''}`;
+            mViews.innerText = views || '1000+'; mDesc.innerHTML = desc;
+            modal.classList.add('active'); document.body.classList.add('modal-open');
+            lenis.stop(); loopTween.pause();
+            gsap.fromTo(modal.querySelector('.modal-content-box'), { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4 });
         }
 
         function closeModal() {
-            const box = modal.querySelector('.modal-content-box');
-            gsap.to(box, {
+            gsap.to(modal.querySelector('.modal-content-box'), {
                 scale: 0.95, opacity: 0, duration: 0.3, 
-                onComplete: () => {
-                    modal.classList.remove('active');
-                    document.body.classList.remove('modal-open');
-                    lenis.start();
-                    loopTween.play();
-                }
+                onComplete: () => { modal.classList.remove('active'); document.body.classList.remove('modal-open'); lenis.start(); loopTween.play(); }
             });
         }
         document.getElementById('close-modal-btn').onclick = closeModal;
         modal.onclick = (e) => { if(e.target === modal) closeModal(); };
 
-
-        // ============================================
-      // 修复：针对 http 开头的外部链接，或者包含 'exhibitions/' 的画展链接，都新开窗口
-document.querySelectorAll('a[href]').forEach(a => {
-    const href = a.getAttribute('href');
-    
-    // 修改了这里的判断条件：
-    // 1. 以 http 开头 (外部链接)
-    //    或者
-    // 2. 链接路径里包含 'exhibitions/' (画展详情页)
-    if (href && (href.startsWith('http') || href.includes('exhibitions/'))) {
-        a.setAttribute('target', '_blank');
-        a.setAttribute('rel', 'noopener noreferrer');
-    }
-});
-
-
+        document.querySelectorAll('a[href]').forEach(a => {
+            const href = a.getAttribute('href');
+            if (href && (href.startsWith('http') || href.includes('exhibitions/'))) {
+                a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
     </script>
 </body>
 </html>
