@@ -1,13 +1,20 @@
-/* === Yanxu 风格导航栏样式 === */
+/* === Yanxu 风格导航栏样式 - 适配深色模式 === */
 
 :root {
-    --nav-text: #1d1d1f;
-    --nav-sub-text: #86868b;
-    --nav-accent: #cfa858;
+    /* 侧边栏专属变量 */
     --nav-bg: rgba(255, 255, 255, 0.75);
     --nav-border: rgba(0, 0, 0, 0.05);
     --nav-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
     --glass-blur: blur(20px) saturate(180%);
+}
+
+/* 深色模式变量覆盖 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --nav-bg: rgba(20, 18, 28, 0.8); /* 深色透明背景 */
+        --nav-border: rgba(255, 255, 255, 0.08);
+        --nav-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
 }
 
 /* === 汉堡按钮 === */
@@ -18,9 +25,10 @@
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--nav-bg);
     border: 1px solid var(--nav-border);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -30,18 +38,19 @@
     z-index: 900;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    color: var(--text-dark); /* 继承主页文字色 */
 }
 
 .hamburger:hover {
-    background: #fff;
+    background: var(--card-bg); /* 悬浮时使用卡片色 */
     transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .hamburger .line {
     width: 16px;
     height: 1.5px;
-    background-color: var(--nav-text);
+    background-color: currentColor; /* 自动跟随文字颜色 */
     transition: all 0.3s ease;
 }
 
@@ -90,40 +99,32 @@
     display: block;
     padding: 12px 20px;
     text-decoration: none;
-    color: var(--nav-text);
+    color: var(--text-dark);
     font-size: 14px;
     letter-spacing: 1px;
     border-radius: 8px;
     transition: all 0.3s ease;
     font-weight: 500;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
 }
 
 .nav-item:hover {
-    background: rgba(207, 168, 88, 0.08);
-    color: var(--nav-accent);
+    background: rgba(207, 168, 88, 0.15);
+    color: var(--accent-gold);
     padding-left: 25px;
 }
 
 .nav-divider {
     height: 1px;
-    background: rgba(0,0,0,0.05);
+    background: var(--line-color);
     margin: 10px 15px;
 }
 
 .nav-item.lang-switch {
     font-family: -apple-system, sans-serif;
-    color: var(--nav-sub-text);
+    color: var(--text-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-.nav-item.lang-switch:hover {
-    color: var(--nav-text);
-    background: rgba(0,0,0,0.03);
-    padding-left: 20px;
 }
 .lang-icon {
     font-size: 10px;
@@ -139,99 +140,26 @@
     }
 }
 
-/* =========================================
-   【核弹级】隐藏 Google 翻译自带 UI
-   ========================================= */
-
-/* 1. 隐藏 Google 插入的 iframe 横幅 (覆盖所有情况) */
-.goog-te-banner-frame,
-iframe.goog-te-banner-frame,
-.goog-te-banner-frame.skiptranslate,
-.goog-te-gadget-simple {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    width: 0 !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    z-index: -9999 !important;
-    position: absolute !important;
-    top: -9999px !important;
-}
-
-/* 2. 强制锁定 body 位置，防止下沉 */
-body {
-    top: 0px !important;
-    position: static !important;
-    min-height: 100% !important; 
-}
-
-html {
-    height: 100% !important;
-}
-
-/* 3. 隐藏原来的下拉框容器 */
-#google_translate_element {
-    display: none !important;
-    height: 0 !important;
-    overflow: hidden !important;
-}
-
-/* 4. 隐藏悬浮提示 */
-.goog-tooltip, 
-.goog-tooltip:hover {
-    display: none !important;
-    visibility: hidden !important;
-}
-
-.goog-text-highlight {
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* 5. 针对移动端特定横幅的暴力隐藏 */
-body > .skiptranslate {
-    display: none !important;
-    height: 0 !important;
-    visibility: hidden !important;
-}
-
-/* 6. 隐藏 Google Logo 和其他杂项 */
-.goog-logo-link {
-    display: none !important;
-}
-.goog-te-gadget {
-    color: transparent !important;
-    font-size: 0 !important;
-    height: 0 !important;
-}
-
-/* =========================================
-   UI 自动隐藏 (滚动/静止) 动画逻辑
-   ========================================= */
-
-/* 给汉堡按钮和音乐控制区添加平滑过渡 */
-/* 注意：这里同时控制了 .controls-area，只要页面引入了这个CSS文件就会生效 */
+/* UI 自动隐藏逻辑保持不变 */
 .hamburger, .controls-area {
     transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1), 
-                opacity 0.4s ease, 
-                background 0.3s, 
-                box-shadow 0.3s !important;
-    will-change: transform, opacity;
+                opacity 0.4s ease !important;
 }
 
-/* 隐藏状态：向上移动并透明 */
 .ui-hidden {
     transform: translateY(-150%) !important;
     opacity: 0 !important;
     pointer-events: none !important;
 }
 
-/* 强制覆盖：当侧边栏打开时，汉堡按钮必须显示，不能被隐藏 */
 .hamburger.active {
     transform: translateY(0) !important;
     opacity: 1 !important;
     pointer-events: auto !important;
 }
 
+/* 隐藏 Google 翻译 UI (核弹级隐藏) */
+.goog-te-banner-frame, iframe.goog-te-banner-frame, .goog-te-gadget-simple, .skiptranslate[style*="visibility: visible"] {
+    display: none !important;
+}
+body { top: 0px !important; }
