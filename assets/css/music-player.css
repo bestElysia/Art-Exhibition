@@ -1,6 +1,5 @@
-/* === 音乐播放器样式 === */
+/* === 音乐播放器样式 - 适配深色模式 === */
 
-/* 顶部控制区容器 */
 .controls-area {
     position: fixed; 
     top: 25px; 
@@ -11,40 +10,46 @@
     align-items: center;
 }
 
-/* 按钮通用样式 */
 .control-btn {
     width: 42px; 
     height: 42px; 
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.6); 
-    border: 1px solid rgba(0,0,0,0.1);
+    /* 使用 nav-bg 保证与汉堡按钮透明度一致 */
+    background: var(--nav-bg); 
+    border: 1px solid var(--nav-border);
     display: flex; 
     justify-content: center; 
     align-items: center;
     cursor: pointer; 
     transition: all 0.3s;
     backdrop-filter: blur(10px);
-    font-size: 12px; 
-    font-weight: 600; 
+    -webkit-backdrop-filter: blur(10px);
     color: var(--text-dark);
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-/* 音乐按钮图标 */
+.control-btn:hover {
+    background: var(--card-bg);
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
 .music-btn svg { 
     width: 18px; 
     height: 18px; 
-    fill: var(--text-dark); 
+    fill: currentColor; /* 自动适配文字颜色 */
     transition: all 0.3s;
 }
 
-/* 播放状态：按钮发光 & 旋转动画 */
+/* 播放状态 */
 .music-btn.playing { 
-    background: #fff; 
-    box-shadow: 0 0 0 4px rgba(207, 168, 88, 0.3); /* 金色光环 */
+    background: var(--card-bg);
+    /* 适配深色模式的光环，降低不透明度 */
+    box-shadow: 0 0 0 4px rgba(207, 168, 88, 0.2); 
+    color: var(--accent-gold);
 }
 
-/* 简单的旋转动画，表示正在播放 */
+/* 旋转动画 */
 .music-btn.playing svg {
     animation: spinMusic 4s linear infinite;
 }
@@ -54,10 +59,10 @@
     to { transform: rotate(360deg); }
 }
 
-/* 移动端适配 (如果需要微调位置) */
+/* 移动端适配 */
 @media (max-width: 768px) {
     .controls-area {
-        top: 20px;
-        right: 20px;
+        top: 25px; /* 保持与汉堡按钮对齐 */
+        right: 25px;
     }
 }
